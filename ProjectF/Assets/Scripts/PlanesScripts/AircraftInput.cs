@@ -12,11 +12,27 @@ public class AircraftInput : MonoBehaviour
     private float roll;
     private float yaw;
     private float throttle;
+    private float airbrake;
+    private float landgear;
+    private float taxi;
+    private bool brake;
+    private float firegun;
+    private bool firerocketspesial;
+    private float selectweapon;
 
     public float Pitch => pitch;
     public float Roll => roll;
     public float Yaw => yaw;
     public float Throttle => throttle; 
+    public float Airbrake => airbrake;
+    public float Landgear => landgear;
+    public float Taxi => taxi;
+    public bool Brake => brake;
+    public float FireGun => firegun;
+    public bool FireRocketSpesial => firerocketspesial;
+    public float SelectWeapon => selectweapon;
+
+
 
     private void Awake()
     {
@@ -34,6 +50,16 @@ public class AircraftInput : MonoBehaviour
 
         inputAction.Flight.Throttle.performed += OnThrottle;
         inputAction.Flight.Throttle.canceled += OnThrottle;
+
+        inputAction.Flight.Airbrake.performed += OnAirBrake;
+
+        inputAction.Flight.LandingGear.performed += OnLandGear;
+
+        inputAction.Ground.Taxi.performed += OnTaxi;
+        inputAction.Ground.Taxi.canceled += OnTaxi;
+
+        inputAction.Ground.Brake.performed += OnLandBrake;
+        inputAction.Ground.Brake.canceled += OnLandBrake;
     }
 
 
@@ -60,4 +86,22 @@ public class AircraftInput : MonoBehaviour
         throttle = context.ReadValue<float>();
     }
 
+    private void OnAirBrake(InputAction.CallbackContext context)
+    {
+        Debug.Log("Airbrake On!");
+    }
+
+    private void OnLandGear(InputAction.CallbackContext context)
+    {
+        Debug.Log("LandGear On!");
+    }
+
+    private void OnTaxi(InputAction.CallbackContext context)
+    {
+        taxi = context.ReadValue<float>();
+    }
+    private void OnLandBrake(InputAction.CallbackContext context)
+    {
+        brake = context.ReadValueAsButton();
+    }
 }
