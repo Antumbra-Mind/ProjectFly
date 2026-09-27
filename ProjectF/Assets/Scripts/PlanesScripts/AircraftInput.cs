@@ -16,9 +16,9 @@ public class AircraftInput : MonoBehaviour
     private float landgear;
     private float taxi;
     private bool brake;
-    private float firegun;
+    private bool firegun;
     private bool firerocketspesial;
-    private float selectweapon;
+    private int selectweapon;
 
     public float Pitch => pitch;
     public float Roll => roll;
@@ -28,9 +28,9 @@ public class AircraftInput : MonoBehaviour
     public float Landgear => landgear;
     public float Taxi => taxi;
     public bool Brake => brake;
-    public float FireGun => firegun;
+    public bool FireGun => firegun;
     public bool FireRocketSpesial => firerocketspesial;
-    public float SelectWeapon => selectweapon;
+    public int SelectWeapon => selectweapon;
 
 
 
@@ -60,6 +60,13 @@ public class AircraftInput : MonoBehaviour
 
         inputAction.Ground.Brake.performed += OnLandBrake;
         inputAction.Ground.Brake.canceled += OnLandBrake;
+
+        inputAction.Weapons.FireGun.performed += OnFireGun;
+        inputAction.Weapons.FireGun.canceled += OnFireGun;
+
+        inputAction.Weapons.FireRocketspesial.performed += OnFireRocket;
+
+        inputAction.Weapons.SelectWeapon.performed += OnSelectWeapon;
     }
 
 
@@ -103,5 +110,34 @@ public class AircraftInput : MonoBehaviour
     private void OnLandBrake(InputAction.CallbackContext context)
     {
         brake = context.ReadValueAsButton();
+    }
+
+    private void OnFireGun(InputAction.CallbackContext context)
+    {
+        firegun = context.ReadValueAsButton();
+        Debug.Log($"Gun Fire!!");
+    }
+
+    private void OnFireRocket(InputAction.CallbackContext context)
+    {
+        Debug.Log("Missle away!");
+    }
+
+    private void OnSelectWeapon(InputAction.CallbackContext context)
+    {
+        switch (context.control.name)
+        {
+            case "1": selectweapon = 1; break;
+            case "2": selectweapon = 2; break;
+            case "3": selectweapon = 3; break;
+            case "4": selectweapon = 4; break;
+        }
+        Debug.Log($"Selected weapin: {selectweapon}");
+    }
+
+    private void OnDisable()
+    {
+        inputAction?.Disable();
+        inputAction?.Dispose();
     }
 }
