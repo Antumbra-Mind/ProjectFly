@@ -73,7 +73,6 @@ public class AircraftInput : MonoBehaviour
     private void OnPitch(InputAction.CallbackContext context)
     {
         pitch = context.ReadValue<float>();
-        Debug.Log($"Pitch: {pitch}");
     }
 
     private void OnRoll(InputAction.CallbackContext context)
