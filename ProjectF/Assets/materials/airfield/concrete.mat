@@ -83,8 +83,10 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _SmoothnessIntensity: 0
+    - _UseEmission: 0
     - _Use_ARM_Map: 1
     m_Colors:
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _Tiling: {r: 5, g: 5, b: 0, a: 0}
   m_BuildTextureStacks: []
