@@ -11,17 +11,17 @@ public class AircraftStats : MonoBehaviour
     }
 
     [SerializeField] private AircraftModel selectModel;
-    private float PlaneMass;
-    private float PlaneMaxSpeed;
-    private float PlaneEnginePower;
-    private float Afterburner;
-    private float AirRessistanse;
-    private float AirBrakePower;
-    private float GroundBrakePower;
-    private float YawSpeed;
-    private float PitchSpeed;
-    private float RollSpeed;
-    private float LandGearTimeReveal;
+    public float PlaneMass;
+    public float PlaneMaxSpeed;
+    public float PlaneEnginePower;
+    public float Afterburner;
+    public float AirRessistanse;
+    public float AirBrakePower;
+    public float GroundBrakePower;
+    public float YawSpeed;
+    public float PitchSpeed;
+    public float RollSpeed;
+    public float LandGearTimeReveal;
 
     private void Awake()
     {
@@ -29,15 +29,15 @@ public class AircraftStats : MonoBehaviour
         {
             case AircraftModel.GripenE:
                 PlaneMass = 8000f;
-                PlaneMaxSpeed = 2470f;
+                PlaneMaxSpeed = 2470f; //км на годину. Далі треба буде перевести в Метри на секунду ig
                 PlaneEnginePower = 64000f;//Потужність двигуна
                 Afterburner = 98000f;//Потужність двигуна на максимумі=Афтербьорнер
                 AirRessistanse = 10f; //Це ще розбирати і розбирати... Супротив Повітря.
                 AirBrakePower = 10f; //Це ще розбирати і розбирати...
                 GroundBrakePower = 10f;
-                YawSpeed = 10f;
-                PitchSpeed = 10f;
-                RollSpeed = 10f;
+                YawSpeed = 30f;
+                PitchSpeed = 30f;
+                RollSpeed = 30f;
                 LandGearTimeReveal = 10f;
                 //Люба характеристика де 10f-затичка.
 

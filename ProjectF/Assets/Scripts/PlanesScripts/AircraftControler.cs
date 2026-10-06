@@ -9,6 +9,9 @@ public class AircraftControler : MonoBehaviour
     private LandingGearController landgear;
     private AirbrakeController airbrake;
     private AircraftStats airstats;
+    public float Pitch;
+    public float Roll;
+    public float Yaw;
 
     private void Awake()
     {
@@ -17,6 +20,9 @@ public class AircraftControler : MonoBehaviour
 
     private void Update()
     {
+        Pitch = aircraftInput.Pitch;
+        Roll = aircraftInput.Roll;
+        Yaw = aircraftInput.Yaw;
         Debug.Log($"Pitch: {aircraftInput.Pitch}");
     }
 }
