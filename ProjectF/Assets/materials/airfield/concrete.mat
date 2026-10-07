@@ -82,7 +82,7 @@ Material:
     - _HeightAmplitude: 0
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _SmoothnessIntensity: 0
+    - _SmoothnessIntensity: 0.2
     - _UseEmission: 0
     - _Use_ARM_Map: 1
     m_Colors:
