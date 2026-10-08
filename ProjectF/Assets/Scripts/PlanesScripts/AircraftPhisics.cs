@@ -3,21 +3,35 @@ using UnityEngine;
 public class AircraftPhisics : MonoBehaviour
 {
     private Rigidbody rigidbody;
-    private AircraftInput aircraftInput;
-
-    [SerializeField] private float engineForce = 10000f;
+    private AircraftControler controler;
+    private AircraftStats stats;
 
     private void Awake()
     {
         rigidbody = GetComponent<Rigidbody>();
-        aircraftInput = GetComponent<AircraftInput>();
+        controler = GetComponent<AircraftControler>();
+        stats = GetComponent<AircraftStats>();
     }
 
     private void FixedUpdate()
-    {
-        float thottle = aircraftInput.Throttle;
+     {
+        //Сама швидкість... тільки як би прибрати можливість їхати назад.
+        float thotle = controler.Thottle;
+        float planeEng = stats.PlaneEnginePower;
+        float airResist = stats.AirRessistanse;
+        float forceAmount = thotle * planeEng;
+        rigidbody.AddForce(transform.forward * forceAmount);
 
-        rigidbody.AddForce(Vector3.forward * thottle * engineForce);
-    }
+        //Частина коду для застування опора повітря. Да все настільки по йобнутому
+        Vector3 velocity = rigidbody.linearVelocity;
+        float speed = velocity.magnitude;
+        if(speed > 0.01f)
+        {
+            float speed2 = speed * speed;
+            float DragForceMagnitude = speed2 * airResist;
+            Vector3 dragForce = -velocity.normalized * DragForceMagnitude;
+            rigidbody.AddForce(dragForce);
+        }
+     }
 
 }

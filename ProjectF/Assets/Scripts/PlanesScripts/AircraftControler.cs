@@ -12,6 +12,7 @@ public class AircraftControler : MonoBehaviour
     public float Pitch;
     public float Roll;
     public float Yaw;
+    public float Thottle;
 
     private void Awake()
     {
@@ -23,6 +24,6 @@ public class AircraftControler : MonoBehaviour
         Pitch = aircraftInput.Pitch;
         Roll = aircraftInput.Roll;
         Yaw = aircraftInput.Yaw;
-        Debug.Log($"Pitch: {aircraftInput.Pitch}");
+        Thottle = aircraftInput.Throttle;
     }
 }
