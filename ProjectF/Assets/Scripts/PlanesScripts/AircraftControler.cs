@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class AircraftControler : MonoBehaviour
@@ -12,7 +13,8 @@ public class AircraftControler : MonoBehaviour
     public float Pitch;
     public float Roll;
     public float Yaw;
-    public float Thottle;
+    public float throttle = 0f;
+    [SerializeField] private float throttlespeed = 50f;
 
     private void Awake()
     {
@@ -24,6 +26,16 @@ public class AircraftControler : MonoBehaviour
         Pitch = aircraftInput.Pitch;
         Roll = aircraftInput.Roll;
         Yaw = aircraftInput.Yaw;
-        Thottle = aircraftInput.Throttle;
+        //Thottle = aircraftInput.Throttle;
+        if (aircraftInput.Throttle > 0f)
+        {
+            throttle = math.clamp(throttle + throttlespeed * Time.deltaTime, 0f, 110f);
+        }
+        else if(aircraftInput.Throttle < 0f)
+        {
+            throttle = math.clamp(throttle - throttlespeed * Time.deltaTime, 0f, 110f);
+        }
+
+        Debug.Log($"throttle is now: "+ (throttle));
     }
 }

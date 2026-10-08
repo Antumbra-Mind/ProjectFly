@@ -35,9 +35,9 @@ public class AircraftStats : MonoBehaviour
                 AirRessistanse = 10f; //Це ще розбирати і розбирати... Супротив Повітря.
                 AirBrakePower = 10f; //Це ще розбирати і розбирати...
                 GroundBrakePower = 10f;
-                YawSpeed = 30f;
-                PitchSpeed = 30f;
-                RollSpeed = 30f;
+                YawSpeed = 40f;
+                PitchSpeed = 40f;
+                RollSpeed = 50f;
                 LandGearTimeReveal = 10f;
                 //Люба характеристика де 10f-затичка.
 

@@ -37,7 +37,7 @@ public class AircraftRotation : MonoBehaviour
         float yawAngle = yaw * yawspeed * Time.fixedDeltaTime;
         float rollAngle = roll * rollspeed * Time.fixedDeltaTime;
 
-        Quaternion deltaRotation = Quaternion.Euler(pitchAngle, yawAngle, rollAngle);
+        Quaternion deltaRotation = Quaternion.Euler(pitchAngle, yawAngle, -rollAngle);
         Quaternion Rotation = rb.rotation * deltaRotation;
 
         rb.MoveRotation(Rotation);
