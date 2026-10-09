@@ -36,6 +36,5 @@ public class AircraftControler : MonoBehaviour
             throttle = math.clamp(throttle - throttlespeed * Time.deltaTime, 0f, 110f);
         }
 
-        Debug.Log($"throttle is now: "+ (throttle));
     }
 }
