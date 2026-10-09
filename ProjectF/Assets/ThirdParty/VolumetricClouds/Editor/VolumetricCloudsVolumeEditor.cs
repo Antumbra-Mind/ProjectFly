@@ -303,12 +303,17 @@ class VolumetricCloudsEditor : VolumeComponentEditor
         //DrawHeader("Shadows");
         {
             PropertyField(m_Shadows);
-            using (new IndentLevelScope())
+
+            if (m_Shadows != null && m_Shadows.value.boolValue)
             {
-                PropertyField(m_ShadowResolution);
-                PropertyField(m_ShadowOpacity);
-                PropertyField(m_ShadowDistance);
-                PropertyField(m_ShadowOpacityFallback);
+                using (new IndentLevelScope())
+                {
+                    if (m_ShadowResolution != null) PropertyField(m_ShadowResolution);
+                    if (m_ShadowOpacity != null) PropertyField(m_ShadowOpacity);
+                    else Debug.Log("m_ShadowOpacity is null");
+                    if (m_ShadowDistance != null) PropertyField(m_ShadowDistance);
+                    if (m_ShadowOpacityFallback != null) PropertyField(m_ShadowOpacityFallback);
+                }
             }
         }
 

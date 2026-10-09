@@ -260,7 +260,7 @@ public class VolumetricClouds : VolumeComponent, IPostProcessComponent
     /// Controls the opacity of the volumetric clouds shadow.
     /// </summary>
     [Tooltip("Controls the opacity of the volumetric clouds shadow.")]
-    [AdditionalProperty]
+    [AdditionalProperty]    
     public ClampedFloatParameter shadowOpacity = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
     /// <summary>
