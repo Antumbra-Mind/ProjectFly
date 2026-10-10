@@ -104,3 +104,5 @@ InitTestScene*.unity*
 /[Aa]ssets/[Ss]ceneDependencyCache*
 
 /ProjectF/Assets/Addons
+/ProjectF/ProfileAnalyzer
+/ProjectF/ProfilerCaptures
