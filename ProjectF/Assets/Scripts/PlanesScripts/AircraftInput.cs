@@ -20,6 +20,10 @@ public class AircraftInput : MonoBehaviour
     private bool firerocketspesial;
     private int selectweapon;
 
+    private bool hideHUD;
+    private bool cameraWatchSwitch;
+    private bool cameraHold;
+
     public float Pitch => pitch;
     public float Roll => roll;
     public float Yaw => yaw;
@@ -31,7 +35,9 @@ public class AircraftInput : MonoBehaviour
     public bool FireGun => firegun;
     public bool FireRocketSpesial => firerocketspesial;
     public int SelectWeapon => selectweapon;
-
+    public bool HideHUD => hideHUD;
+    public bool CameraWatchSwitch => cameraWatchSwitch;
+    public bool CameraHold => cameraHold;
 
 
     private void Awake()
@@ -67,6 +73,12 @@ public class AircraftInput : MonoBehaviour
         inputAction.Weapons.FireRocketspesial.performed += OnFireRocket;
 
         inputAction.Weapons.SelectWeapon.performed += OnSelectWeapon;
+
+        inputAction.HudCamera.HideHUD.performed += OnHideHUD;
+        inputAction.HudCamera.CameraWatchSwitch.performed += OnCameraWatchSwitch;
+
+        inputAction.HudCamera.CameraHold.performed += OnCameraHold;
+        inputAction.HudCamera.CameraHold.canceled += OnCameraHold;
     }
 
 
@@ -132,6 +144,24 @@ public class AircraftInput : MonoBehaviour
             case "4": selectweapon = 4; break;
         }
         Debug.Log($"Selected weapin: {selectweapon}");
+    }
+
+    private void OnHideHUD(InputAction.CallbackContext context)
+    {
+        hideHUD = !hideHUD;
+        Debug.Log($"HideHUD: {hideHUD}");
+    }
+
+    private void OnCameraWatchSwitch(InputAction.CallbackContext context)
+    {
+        cameraWatchSwitch = !cameraWatchSwitch;
+        Debug.Log($"CameraWatchSwitch: {cameraWatchSwitch}");
+    }
+
+    private void OnCameraHold(InputAction.CallbackContext context)
+    {
+        cameraHold = context.ReadValueAsButton();
+        Debug.Log($"CameraHold: {cameraHold}");
     }
 
     private void OnDisable()

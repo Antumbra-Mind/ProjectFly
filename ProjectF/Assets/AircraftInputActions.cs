@@ -485,6 +485,77 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Hud+Camera"",
+            ""id"": ""1b706f47-987f-4c26-bd92-a61dc5eb0bfd"",
+            ""actions"": [
+                {
+                    ""name"": ""HideHUD"",
+                    ""type"": ""Button"",
+                    ""id"": ""88ebcd78-549f-4afd-8111-5eb6c081c300"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""CameraWatchSwitch"",
+                    ""type"": ""Button"",
+                    ""id"": ""0297ba64-d6c5-4f07-bad3-4876a1cc71a0"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""CameraHold"",
+                    ""type"": ""Button"",
+                    ""id"": ""7d68a255-1c08-48f6-ab85-0f0f715451d1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""2d5380fd-ac12-4586-9756-4b8f8ce09f99"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""HideHUD"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""861ca981-f7a0-4327-be3a-7b90a6e1f58a"",
+                    ""path"": ""<Keyboard>/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraWatchSwitch"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""1c94362a-bc47-4346-a70a-6a60649af011"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraHold"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -512,6 +583,11 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
         m_Weapons_FireGun = m_Weapons.FindAction("Fire(Gun)", throwIfNotFound: true);
         m_Weapons_FireRocketspesial = m_Weapons.FindAction("Fire(Rocket)/spesial", throwIfNotFound: true);
         m_Weapons_SelectWeapon = m_Weapons.FindAction("SelectWeapon", throwIfNotFound: true);
+        // Hud+Camera
+        m_HudCamera = asset.FindActionMap("Hud+Camera", throwIfNotFound: true);
+        m_HudCamera_HideHUD = m_HudCamera.FindAction("HideHUD", throwIfNotFound: true);
+        m_HudCamera_CameraWatchSwitch = m_HudCamera.FindAction("CameraWatchSwitch", throwIfNotFound: true);
+        m_HudCamera_CameraHold = m_HudCamera.FindAction("CameraHold", throwIfNotFound: true);
     }
 
     ~@AircraftInputActions()
@@ -519,6 +595,7 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
         UnityEngine.Debug.Assert(!m_Flight.enabled, "This will cause a leak and performance issues, AircraftInputActions.Flight.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_Ground.enabled, "This will cause a leak and performance issues, AircraftInputActions.Ground.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_Weapons.enabled, "This will cause a leak and performance issues, AircraftInputActions.Weapons.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_HudCamera.enabled, "This will cause a leak and performance issues, AircraftInputActions.HudCamera.Disable() has not been called.");
     }
 
     /// <summary>
@@ -966,6 +1043,124 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="WeaponsActions" /> instance referencing this action map.
     /// </summary>
     public WeaponsActions @Weapons => new WeaponsActions(this);
+
+    // Hud+Camera
+    private readonly InputActionMap m_HudCamera;
+    private List<IHudCameraActions> m_HudCameraActionsCallbackInterfaces = new List<IHudCameraActions>();
+    private readonly InputAction m_HudCamera_HideHUD;
+    private readonly InputAction m_HudCamera_CameraWatchSwitch;
+    private readonly InputAction m_HudCamera_CameraHold;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Hud+Camera".
+    /// </summary>
+    public struct HudCameraActions
+    {
+        private @AircraftInputActions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public HudCameraActions(@AircraftInputActions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "HudCamera/HideHUD".
+        /// </summary>
+        public InputAction @HideHUD => m_Wrapper.m_HudCamera_HideHUD;
+        /// <summary>
+        /// Provides access to the underlying input action "HudCamera/CameraWatchSwitch".
+        /// </summary>
+        public InputAction @CameraWatchSwitch => m_Wrapper.m_HudCamera_CameraWatchSwitch;
+        /// <summary>
+        /// Provides access to the underlying input action "HudCamera/CameraHold".
+        /// </summary>
+        public InputAction @CameraHold => m_Wrapper.m_HudCamera_CameraHold;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_HudCamera; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="HudCameraActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(HudCameraActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="HudCameraActions" />
+        public void AddCallbacks(IHudCameraActions instance)
+        {
+            if (instance == null || m_Wrapper.m_HudCameraActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_HudCameraActionsCallbackInterfaces.Add(instance);
+            @HideHUD.started += instance.OnHideHUD;
+            @HideHUD.performed += instance.OnHideHUD;
+            @HideHUD.canceled += instance.OnHideHUD;
+            @CameraWatchSwitch.started += instance.OnCameraWatchSwitch;
+            @CameraWatchSwitch.performed += instance.OnCameraWatchSwitch;
+            @CameraWatchSwitch.canceled += instance.OnCameraWatchSwitch;
+            @CameraHold.started += instance.OnCameraHold;
+            @CameraHold.performed += instance.OnCameraHold;
+            @CameraHold.canceled += instance.OnCameraHold;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="HudCameraActions" />
+        private void UnregisterCallbacks(IHudCameraActions instance)
+        {
+            @HideHUD.started -= instance.OnHideHUD;
+            @HideHUD.performed -= instance.OnHideHUD;
+            @HideHUD.canceled -= instance.OnHideHUD;
+            @CameraWatchSwitch.started -= instance.OnCameraWatchSwitch;
+            @CameraWatchSwitch.performed -= instance.OnCameraWatchSwitch;
+            @CameraWatchSwitch.canceled -= instance.OnCameraWatchSwitch;
+            @CameraHold.started -= instance.OnCameraHold;
+            @CameraHold.performed -= instance.OnCameraHold;
+            @CameraHold.canceled -= instance.OnCameraHold;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="HudCameraActions.UnregisterCallbacks(IHudCameraActions)" />.
+        /// </summary>
+        /// <seealso cref="HudCameraActions.UnregisterCallbacks(IHudCameraActions)" />
+        public void RemoveCallbacks(IHudCameraActions instance)
+        {
+            if (m_Wrapper.m_HudCameraActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="HudCameraActions.AddCallbacks(IHudCameraActions)" />
+        /// <seealso cref="HudCameraActions.RemoveCallbacks(IHudCameraActions)" />
+        /// <seealso cref="HudCameraActions.UnregisterCallbacks(IHudCameraActions)" />
+        public void SetCallbacks(IHudCameraActions instance)
+        {
+            foreach (var item in m_Wrapper.m_HudCameraActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_HudCameraActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="HudCameraActions" /> instance referencing this action map.
+    /// </summary>
+    public HudCameraActions @HudCamera => new HudCameraActions(this);
     private int m_NewControlSchemeSchemeIndex = -1;
     /// <summary>
     /// Provides access to the input control scheme.
@@ -1079,5 +1274,34 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSelectWeapon(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Hud+Camera" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="HudCameraActions.AddCallbacks(IHudCameraActions)" />
+    /// <seealso cref="HudCameraActions.RemoveCallbacks(IHudCameraActions)" />
+    public interface IHudCameraActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "HideHUD" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHideHUD(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CameraWatchSwitch" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCameraWatchSwitch(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CameraHold" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCameraHold(InputAction.CallbackContext context);
     }
 }
