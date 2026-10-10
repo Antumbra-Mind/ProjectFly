@@ -62623,6 +62623,7 @@ GameObject:
   - component: {fileID: 1382853505}
   - component: {fileID: 1382853504}
   - component: {fileID: 1382853507}
+  - component: {fileID: 1382853508}
   m_Layer: 0
   m_Name: Camera
   m_TagString: MainCamera
@@ -62763,6 +62764,25 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &1382853508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1382853502}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: def3b435c398b1e41abb82e3dac09f60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AircraftHUD
+  controler: {fileID: 0}
+  GuffuAhPlane: {fileID: 0}
+  slide: {fileID: 0}
+  FillSlider: {fileID: 0}
+  DryForce: {fileID: 0}
+  Afterburner: {fileID: 0}
+  Altitude: {fileID: 0}
 --- !u!1001 &1383246561
 PrefabInstance:
   m_ObjectHideFlags: 0
