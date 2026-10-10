@@ -195,6 +195,16 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
             playerTransform = Camera.main.transform;
         }
 
+        if (renderCamera == null)
+        {
+            renderCamera = Camera.main;
+        }
+
+        if (renderCamera == null && playerTransform != null)
+        {
+            renderCamera = playerTransform.GetComponentInChildren<Camera>(true);
+        }
+
         if (playerTransform != null)
         {
             targetRigidbody = playerTransform.GetComponentInParent<Rigidbody>();
@@ -249,6 +259,11 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         if (renderCamera == null)
         {
             renderCamera = Camera.main;
+        }
+
+        if (renderCamera == null && playerTransform != null)
+        {
+            renderCamera = playerTransform.GetComponentInChildren<Camera>(true);
         }
 
         if (renderCamera == null)
@@ -595,7 +610,7 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
                     : ShadowCastingMode.Off,
                 receiveShadows = instancedReceiveShadows,
                 layer = gameObject.layer,
-                camera = null
+                camera = renderCamera
             };
 
             Graphics.RenderMeshInstanced(

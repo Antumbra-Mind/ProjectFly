@@ -34,7 +34,7 @@ Shader "Imposter/URP/Billboard Spherical"
             "UniversalMaterialType" = "Lit"
         }
 
-        Cull Back
+        Cull Off
         ZWrite On
         ZTest LEqual
 
@@ -95,19 +95,25 @@ Shader "Imposter/URP/Billboard Spherical"
             return UNITY_MATRIX_M._m03_m13_m23;
         }
 
+        float3 BillboardForwardWS()
+        {
+            float3 cameraForward = float3(
+                -UNITY_MATRIX_V._m20,
+                0.0,
+                -UNITY_MATRIX_V._m22);
+            return dot(cameraForward, cameraForward) > 0.0001
+                ? normalize(cameraForward)
+                : float3(0.0, 0.0, 1.0);
+        }
+
         float3 BillboardRightWS()
         {
-            return normalize(float3(UNITY_MATRIX_V._m00, UNITY_MATRIX_V._m01, UNITY_MATRIX_V._m02));
+            return normalize(cross(float3(0.0, 1.0, 0.0), BillboardForwardWS()));
         }
 
         float3 BillboardUpWS()
         {
-            return normalize(float3(UNITY_MATRIX_V._m10, UNITY_MATRIX_V._m11, UNITY_MATRIX_V._m12));
-        }
-
-        float3 BillboardForwardWS()
-        {
-            return normalize(float3(-UNITY_MATRIX_V._m20, -UNITY_MATRIX_V._m21, -UNITY_MATRIX_V._m22));
+            return float3(0.0, 1.0, 0.0);
         }
 
         float InstancePhase(float3 centerWS)
@@ -168,7 +174,7 @@ Shader "Imposter/URP/Billboard Spherical"
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
             float3 positionWS = BillboardPositionWS(input.positionOS.xyz, input.uv);
-            float3 normalWS = BillboardForwardWS();
+            float3 normalWS = float3(0.0, 1.0, 0.0);
             output.positionWS = positionWS;
             output.normalWS = normalWS;
             output.positionCS = TransformWorldToHClip(positionWS);
@@ -204,8 +210,7 @@ Shader "Imposter/URP/Billboard Spherical"
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
                 half4 albedo = SampleBillboard(input.uv);
-                half3 normalWS = normalize(input.normalWS);
-                half3 ambient = SampleSH(normalWS);
+                half3 ambient = max(SampleSH(half3(0.0, 1.0, 0.0)), half3(0.35, 0.35, 0.35));
                 half3 lighting = ambient;
 
                 #if !defined(_RECEIVE_SHADOWS_OFF)
@@ -215,7 +220,7 @@ Shader "Imposter/URP/Billboard Spherical"
                     #else
                         mainLight = GetMainLight();
                     #endif
-                    half diffuse = saturate(dot(normalWS, mainLight.direction));
+                    half diffuse = saturate(dot(half3(0.0, 1.0, 0.0), mainLight.direction));
                     lighting += mainLight.color * (diffuse * mainLight.distanceAttenuation *
                         mainLight.shadowAttenuation);
                 #endif
