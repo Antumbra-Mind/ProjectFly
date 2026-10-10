@@ -12,6 +12,10 @@ scopes = {
 	"last_search.66F56946" = "p: ref=<$object:\"Assets/textures\",UnityEditor.DefaultAsset$>"
 	"OpenInspectorPreview.66F56946" = "0"
 	"currentGroup.66F56946" = "scene"
+	"picker_window_position_offset.00000000" = "-1545;-79;320;550"
+	"picker_visibility_flags.00000000" = "0"
+	"picker_item_size.00000000" = "1"
+	"picker_inspector.00000000" = "0"
 }
 providers = {
 	asset = {
