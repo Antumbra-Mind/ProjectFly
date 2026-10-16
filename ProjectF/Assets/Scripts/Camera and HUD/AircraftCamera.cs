@@ -6,10 +6,9 @@ using UnityEngine.Rendering.Universal;
 public class AircraftCamera : MonoBehaviour
 {
     [Header("Камера")]
-    private Transform target;
+    [SerializeField] private Transform target;
     private AircraftInput Ainput;
     private AircraftStats stats;
-    [SerializeField] private float followSpeed = 5f;
     private Rigidbody rigitbody;
     public Camera cam;
     public Volume speedVolume;
@@ -25,6 +24,8 @@ public class AircraftCamera : MonoBehaviour
     public float maxPitch = 60f;
     private float currentPitch = 0f;
     private float currentYaw = 0f;
+    private Vector3 lastFlatForward = Vector3.forward;
+    private float lookAtHeight = 1.5f;
 
     public enum CameraMod
     {
@@ -49,14 +50,6 @@ public class AircraftCamera : MonoBehaviour
 
     private void Awake()
     {
-        if (transform.root != null)
-        {
-            target = transform.root;
-        }
-        else
-        {
-            target = transform;
-        }
         Ainput = target.GetComponent<AircraftInput>();
         rigitbody = target.GetComponent<Rigidbody>();
         stats = target.GetComponent<AircraftStats>();
@@ -85,6 +78,9 @@ public class AircraftCamera : MonoBehaviour
         freeLookYaw = 0f;
         currentPitch = 0f;
         currentYaw = 0f;
+
+        Vector3 initForward = Vector3.ProjectOnPlane(target.forward, Vector3.up);
+        if(initForward.sqrMagnitude > 0.001f) { lastFlatForward = initForward.normalized; }
     }
 
     private void Update()
@@ -116,6 +112,7 @@ public class AircraftCamera : MonoBehaviour
     }
     private void LateUpdate()
     {
+        if (target == null || Ainput == null) return;
         if (Ainput.CameraHold)
         {
             FreeLookCamera();
@@ -153,42 +150,58 @@ public class AircraftCamera : MonoBehaviour
     {
         if (target == null) return;
 
-        Vector3 targetPos = target.position;
-        Vector3 flatForward = target.forward;
-        flatForward.y = 0f;
-        if(flatForward.sqrMagnitude > 0.001f)
+        Vector3 flatForward = Vector3.ProjectOnPlane(target.forward, Vector3.up);
+
+        if (flatForward.sqrMagnitude > 0.001f)
         {
             flatForward.Normalize();
+            lastFlatForward = flatForward;
         }
         else
         {
-            flatForward = target.forward;
+            flatForward = lastFlatForward;
         }
-
         Quaternion flatRotation = Quaternion.LookRotation(flatForward, Vector3.up);
-        Vector3 desiredPosition = targetPos + flatRotation * offset;
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, positionSmoothSpeed * Time.deltaTime);
-        Vector3 lookTargetPoint = targetPos + Vector3.up * offset.y;
-        Vector3 lookDirection = lookTargetPoint - transform.position;
+        Vector3 desiredPosition = target.position + flatRotation * offset;
+        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
+        Vector3 lookPoint = target.position + Vector3.up * lookAtHeight;
+        Vector3 lookDirection = lookPoint - transform.position;
         if (lookDirection.sqrMagnitude > 0.001f)
         {
             Quaternion desiredRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
-            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotationSmoothSpeed * Time.deltaTime);
+            float rotT = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotT);
         }
     }
     private void FullCameraView()
     {
+        if (target == null) return;
+        //Розрахунок позиції
+        Vector3 desiredPosition = target.position + target.rotation * offset;
+        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
+        //розрахунок повороту
+        Vector3 lookPoint = target.position + target.up * lookAtHeight;
 
+        Vector3 lookDirection = lookPoint - transform.position;
+
+        if (lookDirection.sqrMagnitude > 0.001f)
+        {
+            Quaternion desiredRotation = Quaternion.LookRotation(lookDirection, target.up);
+            float rotT = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotT);
+        }
     }
 
     private void UpdateSpeedEffect()
     {
-
+        //бляяяяя....
     }
 
     private void UpdateMotionBlur()
     {
-
+        //БЛЯЯЯЯЯЯЯЯЯЯЯЯЯЯ
     }
 
     private void FreeLookCamera()
