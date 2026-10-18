@@ -433,6 +433,16 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "CameraLook",
+                    "type": "PassThrough",
+                    "id": "07472839-2e50-492b-9267-9b3686e25bce",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -466,6 +476,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "CameraHold",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "2071a06d-8be9-405a-b069-eeb1b1d92a82",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraLook",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

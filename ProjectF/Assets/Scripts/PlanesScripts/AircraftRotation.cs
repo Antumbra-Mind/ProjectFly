@@ -19,28 +19,16 @@ public class AircraftRotation : MonoBehaviour
         controler = GetComponent<AircraftControler>();
     }
 
-    public void Update()
+    private void FixedUpdate()
     {
-       pitchspeed = stats.PitchSpeed;
-       rollspeed = stats.RollSpeed;
-       yawspeed = stats.YawSpeed;
-       pitch = controler.Pitch;
-       roll = controler.Roll;
-       yaw = controler.Yaw;
+        if (rb == null || stats == null || controler == null) return;
 
-    }
+        float pitchAngle = controler.Pitch* stats.PitchSpeed * Time.fixedDeltaTime;
+        float yawAngle = controler.Yaw* stats.YawSpeed * Time.fixedDeltaTime;
+        float rollAngle = controler.Roll * stats.RollSpeed * Time.fixedDeltaTime;
 
+        Quaternion deltaRotation = Quaternion.Euler(pitchAngle,yawAngle,-rollAngle);
 
-    private void FixedUpdate()//Тут все-Повороти по осям.
-    {
-        float pitchAngle = pitch * pitchspeed * Time.fixedDeltaTime;
-        float yawAngle = yaw * yawspeed * Time.fixedDeltaTime;
-        float rollAngle = roll * rollspeed * Time.fixedDeltaTime;
-
-        Quaternion deltaRotation = Quaternion.Euler(pitchAngle, yawAngle, -rollAngle);
-        Quaternion Rotation = rb.rotation * deltaRotation;
-
-        rb.MoveRotation(Rotation);
-
+        rb.MoveRotation(rb.rotation * deltaRotation);
     }
 }

@@ -519,6 +519,16 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""initialStateCheck"": false,
                     ""priority"": 0
+                },
+                {
+                    ""name"": ""CameraLook"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""07472839-2e50-492b-9267-9b3686e25bce"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
                 }
             ],
             ""bindings"": [
@@ -552,6 +562,17 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""CameraHold"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2071a06d-8be9-405a-b069-eeb1b1d92a82"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CameraLook"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -588,6 +609,7 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
         m_HudCamera_HideHUD = m_HudCamera.FindAction("HideHUD", throwIfNotFound: true);
         m_HudCamera_CameraWatchSwitch = m_HudCamera.FindAction("CameraWatchSwitch", throwIfNotFound: true);
         m_HudCamera_CameraHold = m_HudCamera.FindAction("CameraHold", throwIfNotFound: true);
+        m_HudCamera_CameraLook = m_HudCamera.FindAction("CameraLook", throwIfNotFound: true);
     }
 
     ~@AircraftInputActions()
@@ -1050,6 +1072,7 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_HudCamera_HideHUD;
     private readonly InputAction m_HudCamera_CameraWatchSwitch;
     private readonly InputAction m_HudCamera_CameraHold;
+    private readonly InputAction m_HudCamera_CameraLook;
     /// <summary>
     /// Provides access to input actions defined in input action map "Hud+Camera".
     /// </summary>
@@ -1073,6 +1096,10 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "HudCamera/CameraHold".
         /// </summary>
         public InputAction @CameraHold => m_Wrapper.m_HudCamera_CameraHold;
+        /// <summary>
+        /// Provides access to the underlying input action "HudCamera/CameraLook".
+        /// </summary>
+        public InputAction @CameraLook => m_Wrapper.m_HudCamera_CameraLook;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1108,6 +1135,9 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
             @CameraHold.started += instance.OnCameraHold;
             @CameraHold.performed += instance.OnCameraHold;
             @CameraHold.canceled += instance.OnCameraHold;
+            @CameraLook.started += instance.OnCameraLook;
+            @CameraLook.performed += instance.OnCameraLook;
+            @CameraLook.canceled += instance.OnCameraLook;
         }
 
         /// <summary>
@@ -1128,6 +1158,9 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
             @CameraHold.started -= instance.OnCameraHold;
             @CameraHold.performed -= instance.OnCameraHold;
             @CameraHold.canceled -= instance.OnCameraHold;
+            @CameraLook.started -= instance.OnCameraLook;
+            @CameraLook.performed -= instance.OnCameraLook;
+            @CameraLook.canceled -= instance.OnCameraLook;
         }
 
         /// <summary>
@@ -1303,5 +1336,12 @@ public partial class @AircraftInputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCameraHold(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CameraLook" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCameraLook(InputAction.CallbackContext context);
     }
 }

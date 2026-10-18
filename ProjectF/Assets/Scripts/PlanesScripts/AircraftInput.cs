@@ -38,6 +38,7 @@ public class AircraftInput : MonoBehaviour
     public bool HideHUD => hideHUD;
     public bool CameraWatchSwitch => cameraWatchSwitch;
     public bool CameraHold => cameraHold;
+    public Vector2 CameraLook => inputAction.HudCamera.CameraLook.ReadValue<Vector2>();
 
 
     private void Awake()
