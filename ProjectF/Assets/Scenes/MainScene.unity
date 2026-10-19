@@ -19058,6 +19058,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 881902772101614394, guid: a63878f57ebe4cd41955010493abaa4c, type: 3}
   m_PrefabInstance: {fileID: 289023315}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &289955868 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5387756580337340492, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
+  m_PrefabInstance: {fileID: 1168638761}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &293106554
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -21357,7 +21362,7 @@ MonoBehaviour:
   treePrefabs:
   - {fileID: 6057233571445684111, guid: 4de01ae7f56f82e4bbc287130153452e, type: 3}
   - {fileID: 2363235155502810374, guid: 39ed57bf70fd7be40870f00737d530d5, type: 3}
-  playerTransform: {fileID: 0}
+  playerTransform: {fileID: 289955868}
   loadDistance: 3000
   renderDistance: 5000
   jsonResourcesPath: BakedTreeData
@@ -50923,6 +50928,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d0d71238b38a4a38b35b955fbf5c019, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::nTools.PrefabPainter.PrefabPainterSceneSettings
+  parentForPrefabs: {fileID: 0}
 --- !u!4 &1047016843
 Transform:
   m_ObjectHideFlags: 19
@@ -54871,6 +54877,10 @@ PrefabInstance:
       propertyPath: speedVolume
       value: 
       objectReference: {fileID: 579649253}
+    - target: {fileID: 4069468475223641234, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
+      propertyPath: far clip plane
+      value: 10000
+      objectReference: {fileID: 0}
     - target: {fileID: 5035359046453766878, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7031.106
