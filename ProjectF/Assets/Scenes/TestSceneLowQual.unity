@@ -619,7 +619,7 @@ GameObject:
   - component: {fileID: 302707391}
   - component: {fileID: 302707390}
   m_Layer: 5
-  m_Name: Canvas
+  m_Name: HUDContent
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -705,7 +705,6 @@ RectTransform:
   - {fileID: 1389092668}
   - {fileID: 166853801}
   - {fileID: 1579377436}
-  - {fileID: 1208163320}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -737,13 +736,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 449634079}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.2588191, y: 0, z: 0, w: 0.9659258}
-  m_LocalPosition: {x: 0, y: 7.35, z: -9.71}
+  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
+  m_LocalPosition: {x: -7068, y: 38.559998, z: 743.73}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 504251281}
-  m_Father: {fileID: 125456184}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 30, y: 0, z: 0}
 --- !u!1 &504251280
 GameObject:
@@ -866,10 +865,10 @@ MonoBehaviour:
   freeLookYaw: 0
   currentCameraDistance: 0
   normalFOV: 60
-  maxFOV: 85
+  maxFOV: 70
   effectStartSpeed: 50
   effectMaxSpeed: 200
-  fovSmoothSpeed: 5
+  fovSmoothSpeed: 1
   speedEffectFactor: 0
 --- !u!114 &504251285
 MonoBehaviour:
@@ -1269,16 +1268,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1208163319}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: 0.2588191, y: -0, z: -0, w: 0.9659258}
+  m_LocalPosition: {x: 0, y: 0, z: 744.596}
+  m_LocalScale: {x: 0.0035273368, y: 0.0035273368, z: 0.0035273368}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 302707393}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -2003436.9, y: 9344.422}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1208163321
@@ -1294,12 +1293,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AircraftHUD
   controler: {fileID: 125456189}
+  input: {fileID: 0}
   GuffuAhPlane: {fileID: 125456184}
   slide: {fileID: 1771975326}
   FillSlider: {fileID: 1425891552}
   DryForce: {fileID: 1389092669}
   Afterburner: {fileID: 166853802}
   Altitude: {fileID: 1579377437}
+  HUDcontent: {fileID: 302707389}
+  previousHideHUD: 0
 --- !u!1 &1315242856
 GameObject:
   m_ObjectHideFlags: 0
@@ -2196,10 +2198,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 449634080}
+    m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
       insertIndex: -1
@@ -2242,3 +2241,5 @@ SceneRoots:
   - {fileID: 705507995}
   - {fileID: 1315242862}
   - {fileID: 907576571}
+  - {fileID: 449634080}
+  - {fileID: 1208163320}

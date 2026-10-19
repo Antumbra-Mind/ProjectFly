@@ -1,21 +1,34 @@
 using TMPro;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class AircraftHUD : MonoBehaviour
 {
     public AircraftControler controler;
+    public AircraftInput input;
     public Transform GuffuAhPlane;
     public Slider slide;
     public Image FillSlider;
     public TMP_Text DryForce;
     public TMP_Text Afterburner;
     public TMP_Text Altitude;
+    public GameObject HUDcontent;
+    public bool previousHideHUD;
 
+    private void Awake()
+    {
+        if (GuffuAhPlane != null)
+            input = GuffuAhPlane.GetComponent<AircraftInput>();
+        if (HUDcontent == null) return;
+        previousHideHUD = input.HideHUD;
+        HUDcontent.SetActive(!input.HideHUD);
+    }
 
     private void Update()
     {
+        UpdaterHUDVisible();
         UpdateThrottleSlider();
         UpdateThrottleText();
         UpdateAltitudeText();
@@ -53,5 +66,15 @@ public class AircraftHUD : MonoBehaviour
     {
         float altitude = GuffuAhPlane.transform.position.y;
         Altitude.text = $"ALT.:{altitude:F0} M.";
+    }
+    
+    public void UpdaterHUDVisible()
+    {
+        if (input == null || HUDcontent == null) return;
+        bool HUDnow = input.HideHUD;
+        if (HUDnow == previousHideHUD) return;
+
+        HUDcontent.SetActive(!HUDnow);
+        previousHideHUD = HUDnow;
     }
 }

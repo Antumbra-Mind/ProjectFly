@@ -125,7 +125,7 @@ public class AircraftCamera : MonoBehaviour
         else {
             if (curentCameraMod == CameraMod.Standart)
             {
-                CameraView();
+                StandartCameraView();
             }
             else if(curentCameraMod == CameraMod.FullTraking)
             {
@@ -150,8 +150,29 @@ public class AircraftCamera : MonoBehaviour
             curentCameraMod = CameraMod.Standart;
         }
     }
-    
-    private void CameraView()
+
+    private void StandartCameraView()
+    {
+        if (target == null) return;
+        //Розрахунок позиції
+        Vector3 desiredPosition = target.position + target.rotation * offset;
+        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
+        //розрахунок повороту
+        Vector3 lookPoint = target.position + target.up * lookAtHeight;
+        Vector3 lookDirection = lookPoint - transform.position;
+
+        if (lookDirection.sqrMagnitude > 0.001f)
+        {
+            Vector3 localLookDirection = new Vector3(-offset.x, lookAtHeight - offset.y, -offset.z);
+            Quaternion localRotation = Quaternion.LookRotation(localLookDirection, Vector3.up);
+            Quaternion desiredRotation = target.rotation * localRotation;
+            float rotT = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotT);
+        }
+    }
+
+    private void FullCameraView()
     {
         if (target == null) return;
 
@@ -179,27 +200,7 @@ public class AircraftCamera : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotT);
         }
     }
-    private void FullCameraView()
-    {
-        if (target == null) return;
-        //Розрахунок позиції
-        Vector3 desiredPosition = target.position + target.rotation * offset;
-        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
-        //розрахунок повороту
-        Vector3 lookPoint = target.position + target.up * lookAtHeight;
 
-        Vector3 lookDirection = lookPoint - transform.position;
-
-        if (lookDirection.sqrMagnitude > 0.001f)
-        {
-            Vector3 localLookDirection = new Vector3(-offset.x, lookAtHeight - offset.y, -offset.z);
-            Quaternion localRotation = Quaternion.LookRotation(localLookDirection, Vector3.up);
-            Quaternion desiredRotation = target.rotation * localRotation;
-            float rotT = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, rotT);
-        }
-    }
 
     private void UpdateSpeedEffect()
     {
