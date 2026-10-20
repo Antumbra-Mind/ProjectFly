@@ -106,3 +106,7 @@ InitTestScene*.unity*
 /ProjectF/Assets/Addons
 /ProjectF/ProfileAnalyzer
 /ProjectF/ProfilerCaptures
+/Builds
+
+AGENTS.md
+COPILOT_PERFORMANCE_CONTEXT.md

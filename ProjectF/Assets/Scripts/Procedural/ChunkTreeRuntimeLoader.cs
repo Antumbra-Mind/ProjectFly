@@ -2,12 +2,384 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
+using System.Threading.Tasks;
+using Unity.Burst;
+using Unity.Collections;
+using Unity.Jobs;
+using Unity.Mathematics;
+using Unity.Profiling;
 using UnityEngine.Rendering;
 using UnityEngine.Profiling;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
+
+public readonly struct RawTreeRecord
+{
+    public readonly float px, py, pz;
+    public readonly float qx, qy, qz, qw;
+    public readonly float sx, sy, sz;
+    public readonly int prefabIndex;
+
+    public RawTreeRecord(
+        float px,
+        float py,
+        float pz,
+        float qx,
+        float qy,
+        float qz,
+        float qw,
+        float sx,
+        float sy,
+        float sz,
+        int prefabIndex)
+    {
+        this.px = px;
+        this.py = py;
+        this.pz = pz;
+        this.qx = qx;
+        this.qy = qy;
+        this.qz = qz;
+        this.qw = qw;
+        this.sx = sx;
+        this.sy = sy;
+        this.sz = sz;
+        this.prefabIndex = prefabIndex;
+    }
+}
+
+[BurstCompile]
+public struct BuildRootMatricesJob : IJobParallelFor
+{
+    [ReadOnly]
+    public NativeArray<RawTreeRecord> trees;
+
+    [WriteOnly]
+    public NativeArray<float4x4> rootMatrices;
+
+    public void Execute(int index)
+    {
+        RawTreeRecord tree = trees[index];
+        rootMatrices[index] = float4x4.TRS(
+            new float3(tree.px, tree.py, tree.pz),
+            new quaternion(tree.qx, tree.qy, tree.qz, tree.qw),
+            new float3(tree.sx, tree.sy, tree.sz)
+        );
+    }
+}
+
+[BurstCompile]
+public struct BuildPartMatricesJob : IJobParallelFor
+{
+    [ReadOnly]
+    public NativeArray<float4x4> rootMatrices;
+
+    [WriteOnly]
+    public NativeArray<float4x4> outputMatrices;
+
+    public float4x4 localPartMatrix;
+
+    public void Execute(int index)
+    {
+        outputMatrices[index] = math.mul(
+            rootMatrices[index],
+            localPartMatrix
+        );
+    }
+}
+
+internal static class RawChunkJsonParser
+{
+    public static RawTreeRecord[] Parse(
+        string json,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            throw new FormatException("Tree chunk JSON is empty.");
+        }
+
+        int treesProperty = json.IndexOf(
+            "\"trees\"",
+            StringComparison.Ordinal
+        );
+        if (treesProperty < 0)
+        {
+            return Array.Empty<RawTreeRecord>();
+        }
+
+        int arrayStart = json.IndexOf('[', treesProperty);
+        if (arrayStart < 0)
+        {
+            throw new FormatException("Tree array is missing.");
+        }
+
+        List<RawTreeRecord> records = new List<RawTreeRecord>();
+        int cursor = arrayStart + 1;
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            SkipWhitespaceAndCommas(json, ref cursor);
+
+            if (cursor >= json.Length)
+            {
+                throw new FormatException("Tree array is not closed.");
+            }
+
+            if (json[cursor] == ']')
+            {
+                break;
+            }
+
+            if (json[cursor] != '{')
+            {
+                throw new FormatException("Tree record must be a JSON object.");
+            }
+
+            int objectEnd = FindObjectEnd(json, cursor);
+            int positionStart = FindObjectPropertyStart(
+                json,
+                cursor,
+                objectEnd,
+                "position"
+            );
+            int rotationStart = FindObjectPropertyStart(
+                json,
+                cursor,
+                objectEnd,
+                "rotation"
+            );
+            int scaleStart = FindObjectPropertyStart(
+                json,
+                cursor,
+                objectEnd,
+                "scale"
+            );
+
+            RawTreeRecord record = new RawTreeRecord(
+                ReadFloatProperty(json, positionStart, "x"),
+                ReadFloatProperty(json, positionStart, "y"),
+                ReadFloatProperty(json, positionStart, "z"),
+                ReadFloatProperty(json, rotationStart, "x"),
+                ReadFloatProperty(json, rotationStart, "y"),
+                ReadFloatProperty(json, rotationStart, "z"),
+                ReadFloatProperty(json, rotationStart, "w"),
+                ReadFloatProperty(json, scaleStart, "x"),
+                ReadFloatProperty(json, scaleStart, "y"),
+                ReadFloatProperty(json, scaleStart, "z"),
+                ReadIntProperty(json, cursor, objectEnd, "prefabIndex")
+            );
+
+            records.Add(record);
+            cursor = objectEnd + 1;
+        }
+
+        return records.ToArray();
+    }
+
+    private static void SkipWhitespaceAndCommas(string json, ref int cursor)
+    {
+        while (cursor < json.Length &&
+               (char.IsWhiteSpace(json[cursor]) || json[cursor] == ','))
+        {
+            cursor++;
+        }
+    }
+
+    private static int FindObjectEnd(string json, int objectStart)
+    {
+        int depth = 0;
+        bool inString = false;
+        bool escaped = false;
+
+        for (int i = objectStart; i < json.Length; i++)
+        {
+            char character = json[i];
+            if (inString)
+            {
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (character == '\\')
+                {
+                    escaped = true;
+                }
+                else if (character == '"')
+                {
+                    inString = false;
+                }
+
+                continue;
+            }
+
+            if (character == '"')
+            {
+                inString = true;
+            }
+            else if (character == '{')
+            {
+                depth++;
+            }
+            else if (character == '}' && --depth == 0)
+            {
+                return i;
+            }
+        }
+
+        throw new FormatException("Tree object is not closed.");
+    }
+
+    private static int FindObjectPropertyStart(
+        string json,
+        int objectStart,
+        int objectEnd,
+        string propertyName)
+    {
+        int property = json.IndexOf(
+            $"\"{propertyName}\"",
+            objectStart,
+            objectEnd - objectStart,
+            StringComparison.Ordinal
+        );
+        if (property < 0)
+        {
+            throw new FormatException(
+                $"Tree property '{propertyName}' is missing."
+            );
+        }
+
+        int valueStart = json.IndexOf(':', property);
+        if (valueStart < 0 || valueStart >= objectEnd)
+        {
+            throw new FormatException(
+                $"Tree property '{propertyName}' has no value."
+            );
+        }
+
+        valueStart++;
+        while (valueStart < objectEnd &&
+               char.IsWhiteSpace(json[valueStart]))
+        {
+            valueStart++;
+        }
+
+        if (valueStart >= objectEnd || json[valueStart] != '{')
+        {
+            throw new FormatException(
+                $"Tree property '{propertyName}' is not an object."
+            );
+        }
+
+        return valueStart;
+    }
+
+    private static float ReadFloatProperty(
+        string json,
+        int objectStart,
+        string propertyName)
+    {
+        int valueStart = FindPropertyValueStart(
+            json,
+            objectStart,
+            FindObjectEnd(json, objectStart),
+            propertyName
+        );
+        int valueEnd = FindNumberEnd(json, valueStart);
+        return float.Parse(
+            json.Substring(valueStart, valueEnd - valueStart),
+            NumberStyles.Float,
+            CultureInfo.InvariantCulture
+        );
+    }
+
+    private static int ReadIntProperty(
+        string json,
+        int objectStart,
+        int objectEnd,
+        string propertyName)
+    {
+        int valueStart = FindPropertyValueStart(
+            json,
+            objectStart,
+            objectEnd,
+            propertyName
+        );
+        int valueEnd = FindNumberEnd(json, valueStart);
+        return int.Parse(
+            json.Substring(valueStart, valueEnd - valueStart),
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture
+        );
+    }
+
+    private static int FindPropertyValueStart(
+        string json,
+        int objectStart,
+        int objectEnd,
+        string propertyName)
+    {
+        int property = json.IndexOf(
+            $"\"{propertyName}\"",
+            objectStart,
+            objectEnd - objectStart,
+            StringComparison.Ordinal
+        );
+        if (property < 0)
+        {
+            throw new FormatException(
+                $"Tree property '{propertyName}' is missing."
+            );
+        }
+
+        int valueStart = json.IndexOf(':', property);
+        if (valueStart < 0 || valueStart >= objectEnd)
+        {
+            throw new FormatException(
+                $"Tree property '{propertyName}' has no value."
+            );
+        }
+
+        valueStart++;
+        while (valueStart < objectEnd &&
+               char.IsWhiteSpace(json[valueStart]))
+        {
+            valueStart++;
+        }
+
+        return valueStart;
+    }
+
+    private static int FindNumberEnd(string json, int numberStart)
+    {
+        int cursor = numberStart;
+        while (cursor < json.Length)
+        {
+            char character = json[cursor];
+            if (!char.IsDigit(character) &&
+                character != '-' &&
+                character != '+' &&
+                character != '.' &&
+                character != 'e' &&
+                character != 'E')
+            {
+                break;
+            }
+
+            cursor++;
+        }
+
+        if (cursor == numberStart)
+        {
+            throw new FormatException("Expected a numeric tree value.");
+        }
+
+        return cursor;
+    }
+}
 
 public class ChunkTreeRuntimeLoader : MonoBehaviour
 {
@@ -53,6 +425,9 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
     [Min(1)]
     public int chunkSize = 500;
 
+    [Header("Stage 3 Evaluation")]
+    public bool useSpatialSubChunks = false;
+
     [Header("Memory")]
     [Tooltip("Approximate managed memory budget for parsed JSON data.")]
     [Min(0)]
@@ -73,6 +448,49 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
     public float editorPreviewDistance = 5000f;
 
     private const int MaxInstancesPerDraw = 1023;
+    private const int SubChunkGridSize = 4;
+    private const int SubChunkCellCount =
+        SubChunkGridSize * SubChunkGridSize;
+
+    private static class Stage3Profiler
+    {
+        public static readonly ProfilerMarker ApplyCompletedMatrices =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.ApplyCompletedMatrixBuilds"
+            );
+        public static readonly ProfilerMarker ChunkVisibility =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.ChunkVisibility"
+            );
+        public static readonly ProfilerMarker ChunkVisibilityTest =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.ChunkVisibility.TestPlanesAABB"
+            );
+        public static readonly ProfilerMarker SubChunkVisibility =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.SubChunkVisibility"
+            );
+        public static readonly ProfilerMarker SubChunkVisibilityTest =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.SubChunkVisibility.TestPlanesAABB"
+            );
+        public static readonly ProfilerMarker SubmitBatches =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.SubmitInstancedBatches"
+            );
+        public static readonly ProfilerMarker SubmitSubChunkBatches =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.SubmitSubChunkBatches"
+            );
+        public static readonly ProfilerMarker RenderMeshInstanced =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.Graphics.RenderMeshInstanced"
+            );
+        public static readonly ProfilerMarker BuildSubChunkBatches =
+            new ProfilerMarker(
+                "ChunkTreeRuntimeLoader.BuildSubChunkBatches"
+            );
+    }
 
     private sealed class RenderBatch
     {
@@ -80,7 +498,35 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         public Material material;
         public int submeshIndex;
         public Matrix4x4[] matrices;
+        public int instanceCount;
         public Bounds bounds;
+    }
+
+    private sealed class SubChunkCell
+    {
+        public Bounds bounds;
+        public readonly List<RenderBatch> batches =
+            new List<RenderBatch>();
+        public int activeBatchCount;
+        public int instanceCount;
+        public bool hasInstances;
+    }
+
+    private sealed class ChunkSubChunkData
+    {
+        public readonly SubChunkCell[] cells =
+            new SubChunkCell[SubChunkCellCount];
+        public int activeCellCount;
+        public int totalInstanceCount;
+        public int totalBatchCount;
+
+        public ChunkSubChunkData()
+        {
+            for (int i = 0; i < cells.Length; i++)
+            {
+                cells[i] = new SubChunkCell();
+            }
+        }
     }
 
     private sealed class RenderPart
@@ -89,6 +535,7 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         public Material material;
         public int submeshIndex;
         public Matrix4x4 localMatrix;
+        public float4x4 burstLocalMatrix;
     }
 
     private sealed class PrefabRenderData
@@ -96,11 +543,31 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         public RenderPart[] parts;
     }
 
+    private sealed class PendingPartMatrixBuild
+    {
+        public int prefabIndex;
+        public RenderPart part;
+        public NativeArray<float4x4> outputMatrices;
+    }
+
+    private sealed class PendingMatrixBuild
+    {
+        public JobHandle handle;
+        public NativeArray<RawTreeRecord> trees;
+        public NativeArray<float4x4> rootMatrices;
+        public readonly List<PendingPartMatrixBuild> parts =
+            new List<PendingPartMatrixBuild>();
+        public int requestVersion;
+        public int scheduledFrame;
+        public string chunkName;
+    }
+
     private sealed class ChunkRuntimeState
     {
         public Transform chunk;
         public Bounds bounds;
         public ChunkData data;
+        public RawTreeRecord[] rawRecords;
         public int nextTreeIndex;
         public bool wantsToLoad;
         public bool wantsToRender;
@@ -111,6 +578,14 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         public bool unloading;
         public bool rebuildRequested;
         public float priority;
+        public int activeBatchCount;
+        public int requestVersion;
+        public int parseVersion;
+        public Task<RawTreeRecord[]> parseTask;
+        public CancellationTokenSource parseCancellation;
+        public PendingMatrixBuild pendingMatrixBuild;
+        public readonly ChunkSubChunkData subChunks =
+            new ChunkSubChunkData();
         public readonly List<RenderBatch> batches = new List<RenderBatch>();
         public readonly List<GameObject> individualTrees = new List<GameObject>();
     }
@@ -118,6 +593,7 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
     private sealed class CachedChunkData
     {
         public ChunkData data;
+        public RawTreeRecord[] rawRecords;
         public int estimatedBytes;
         public LinkedListNode<string> node;
     }
@@ -161,10 +637,14 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
     private readonly List<ChunkRuntimeState> stateBuffer = new List<ChunkRuntimeState>();
     private readonly Plane[] frustumPlanes = new Plane[6];
     private PrefabRenderData[] preparedPrefabData;
+    private List<Matrix4x4>[] instancedRootMatricesByPrefab;
+    private readonly List<int> activeInstancedPrefabIndices = new List<int>();
     private readonly ChunkPriorityComparer priorityComparer = new ChunkPriorityComparer();
     private int parsedDataBytes;
     private int frameSubmittedInstances;
+    private int frameSubmittedDrawCalls;
     private int frameActiveRenderChunks;
+    private int frameActiveSubChunkCells;
     private int frameActiveIndividualTrees;
     private int preparedChunks;
     private int loadedChunks;
@@ -186,6 +666,9 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
     {
         loadDistSq = GetEffectiveRenderDistance() * GetEffectiveRenderDistance();
         preparedPrefabData = BuildPrefabRenderData();
+        instancedRootMatricesByPrefab = new List<Matrix4x4>[
+            preparedPrefabData == null ? 0 : preparedPrefabData.Length
+        ];
     }
 
     private void Start()
@@ -214,14 +697,17 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
 
         foreach (Transform chunk in transform)
         {
-            chunkStates[chunk] = new ChunkRuntimeState
+            Bounds chunkBounds = new Bounds(
+                chunk.position,
+                new Vector3(chunkSize, chunkSize, chunkSize)
+            );
+            ChunkRuntimeState state = new ChunkRuntimeState
             {
                 chunk = chunk,
-                bounds = new Bounds(
-                    chunk.position,
-                    new Vector3(chunkSize, chunkSize, chunkSize)
-                )
+                bounds = chunkBounds
             };
+            InitializeSubChunkBounds(state.subChunks, chunkBounds);
+            chunkStates[chunk] = state;
         }
 
         UpdateChunkRequests(true);
@@ -254,6 +740,55 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         }
     }
 
+    public void RefreshRuntimeSettings(bool rebuildInstancedBatches)
+    {
+        loadDistSq = GetEffectiveRenderDistance() *
+                     GetEffectiveRenderDistance();
+        UpdateChunkRequests(true);
+
+        if (rebuildInstancedBatches)
+        {
+            preparedPrefabData = BuildPrefabRenderData();
+            instancedRootMatricesByPrefab = new List<Matrix4x4>[
+                preparedPrefabData == null ? 0 : preparedPrefabData.Length
+            ];
+
+            for (int i = 0; i < activeLoads.Count; i++)
+            {
+                ChunkRuntimeState activeState = activeLoads[i];
+                if (activeState.pendingMatrixBuild == null)
+                {
+                    continue;
+                }
+
+                DisposePendingMatrixBuild(activeState);
+                activeState.requestVersion++;
+                if (!activeState.wantsIndividual &&
+                    activeState.rawRecords != null)
+                {
+                    ScheduleMatrixBuild(activeState);
+                }
+            }
+
+            foreach (ChunkRuntimeState state in chunkStates.Values)
+            {
+                if (!state.loaded || state.individualMode ||
+                    state.unloading || state.rawRecords == null ||
+                    !state.wantsToLoad)
+                {
+                    continue;
+                }
+
+                ClearBatches(state);
+                ClearSubChunkBatches(state.subChunks);
+                state.requestVersion++;
+                state.loading = true;
+                ScheduleMatrixBuild(state);
+                activeLoads.Add(state);
+            }
+        }
+    }
+
     private void LateUpdate()
     {
         if (renderCamera == null)
@@ -272,7 +807,9 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         }
 
         frameSubmittedInstances = 0;
+        frameSubmittedDrawCalls = 0;
         frameActiveRenderChunks = 0;
+        frameActiveSubChunkCells = 0;
         frameActiveIndividualTrees = 0;
         GeometryUtility.CalculateFrustumPlanes(renderCamera, frustumPlanes);
 
@@ -289,13 +826,32 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
                 continue;
             }
 
-            if (!GeometryUtility.TestPlanesAABB(frustumPlanes, state.bounds))
+            bool chunkVisible;
+            using (Stage3Profiler.ChunkVisibility.Auto())
+            {
+                using (Stage3Profiler.ChunkVisibilityTest.Auto())
+                {
+                    chunkVisible = GeometryUtility.TestPlanesAABB(
+                        frustumPlanes,
+                        state.bounds
+                    );
+                }
+            }
+
+            if (!chunkVisible)
             {
                 continue;
             }
 
             frameActiveRenderChunks++;
-            SubmitInstancedBatches(state);
+            if (useSpatialSubChunks)
+            {
+                SubmitSubChunkBatches(state);
+            }
+            else
+            {
+                SubmitInstancedBatches(state);
+            }
         }
     }
 
@@ -331,6 +887,19 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
     }
 
     private void UpdateChunkRequests(bool force)
+    {
+        Profiler.BeginSample("ChunkTreeRuntimeLoader.UpdateChunkRequests");
+        try
+        {
+            UpdateChunkRequestsInternal(force);
+        }
+        finally
+        {
+            Profiler.EndSample();
+        }
+    }
+
+    private void UpdateChunkRequestsInternal(bool force)
     {
         if (playerTransform == null && !force)
         {
@@ -404,7 +973,15 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         while (true)
         {
             int destroyBudget = Mathf.Max(0, maxDestroysPerFrame);
-            ProcessUnloads(ref destroyBudget);
+            Profiler.BeginSample("ChunkTreeRuntimeLoader.ProcessUnloads");
+            try
+            {
+                ProcessUnloads(ref destroyBudget);
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
 
             StartPendingLoads();
 
@@ -428,10 +1005,19 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
 
             state.loading = true;
             state.nextTreeIndex = 0;
-            state.data = GetChunkData(state.chunk.name);
+            state.data = null;
             lastChunkRequestTime = Time.realtimeSinceStartup;
 
-            if (state.data == null)
+            if (TryGetCachedChunkData(state.chunk.name, out ChunkData cachedData))
+            {
+                state.data = cachedData;
+                state.rawRecords = parsedDataCache[state.chunk.name].rawRecords;
+                if (!state.wantsIndividual)
+                {
+                    ScheduleMatrixBuild(state);
+                }
+            }
+            else if (!BeginAsyncChunkParse(state))
             {
                 state.loading = false;
                 state.loaded = true;
@@ -455,20 +1041,73 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
                 continue;
             }
 
-            bool complete;
+            if (state.parseTask != null)
+            {
+                if (!state.parseTask.IsCompleted)
+                {
+                    i++;
+                    continue;
+                }
+
+                if (!CompleteAsyncChunkParse(state))
+                {
+                    state.loading = false;
+                    state.loaded = true;
+                    state.wantsToRender = false;
+                    activeLoads.RemoveAt(i);
+                    continue;
+                }
+            }
+
             if (state.wantsIndividual)
             {
-                complete = BuildIndividualChunk(state, ref instantiateBudget);
+                DisposePendingMatrixBuild(state);
+                if (!BuildIndividualChunk(state, ref instantiateBudget))
+                {
+                    i++;
+                    continue;
+                }
             }
             else
             {
-                complete = BuildInstancedChunk(state);
-            }
+                if (state.pendingMatrixBuild == null)
+                {
+                    ScheduleMatrixBuild(state);
+                    i++;
+                    continue;
+                }
 
-            if (!complete)
-            {
-                i++;
-                continue;
+                if (state.pendingMatrixBuild.scheduledFrame >= Time.frameCount)
+                {
+                    i++;
+                    continue;
+                }
+
+                if (!state.pendingMatrixBuild.handle.IsCompleted)
+                {
+                    i++;
+                    continue;
+                }
+
+                PendingMatrixBuild pending = state.pendingMatrixBuild;
+                if (pending.requestVersion != state.requestVersion ||
+                    !state.wantsToLoad)
+                {
+                    DisposePendingMatrixBuild(state);
+                    state.loading = false;
+                    state.loaded = false;
+                    activeLoads.RemoveAt(i);
+                    continue;
+                }
+
+                if (!ApplyCompletedMatrixBuilds(state))
+                {
+                    state.loading = false;
+                    state.loaded = true;
+                    state.wantsToRender = false;
+                    activeLoads.RemoveAt(i);
+                    continue;
+                }
             }
 
             state.loading = false;
@@ -511,116 +1150,624 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         return state.nextTreeIndex >= state.data.trees.Count;
     }
 
-    private bool BuildInstancedChunk(ChunkRuntimeState state)
+    private void ScheduleMatrixBuild(ChunkRuntimeState state)
     {
-        Profiler.BeginSample("ChunkTreeRuntimeLoader.BuildInstancedChunk");
-        ClearBatches(state);
-
-        if (state.data.trees == null || state.data.trees.Count == 0)
+        if (state.pendingMatrixBuild != null)
         {
-            Profiler.EndSample();
-            return true;
+            return;
         }
 
-        int lodIndex = Mathf.Max(0, instancedLodIndex);
-        Dictionary<int, List<Matrix4x4>> matricesByPrefab =
-            new Dictionary<int, List<Matrix4x4>>();
-
-        foreach (TreeData treeData in state.data.trees)
+        RawTreeRecord[] records = state.rawRecords;
+        if (records == null)
         {
-            if (treeData.prefabIndex < 0 || treeData.prefabIndex >= preparedPrefabData.Length ||
-                preparedPrefabData[treeData.prefabIndex] == null)
+            records = ConvertTreeDataToRawRecords(state.data);
+            state.rawRecords = records;
+        }
+
+        int treeCount = records == null ? 0 : records.Length;
+        PendingMatrixBuild pending = new PendingMatrixBuild
+        {
+            requestVersion = state.requestVersion,
+            scheduledFrame = Time.frameCount,
+            chunkName = state.chunk.name
+        };
+        try
+        {
+            pending.trees = new NativeArray<RawTreeRecord>(
+                treeCount,
+                Allocator.Persistent
+            );
+            pending.rootMatrices = new NativeArray<float4x4>(
+                treeCount,
+                Allocator.Persistent
+            );
+            for (int i = 0; i < treeCount; i++)
+            {
+                pending.trees[i] = records[i];
+            }
+
+            BuildRootMatricesJob rootJob = new BuildRootMatricesJob
+            {
+                trees = pending.trees,
+                rootMatrices = pending.rootMatrices
+            };
+            JobHandle rootHandle = default;
+            JobHandle combinedHandle = default;
+            if (treeCount > 0)
+            {
+                rootHandle = rootJob.Schedule(treeCount, 64);
+                combinedHandle = rootHandle;
+            }
+
+            if (treeCount > 0 && preparedPrefabData != null)
+            {
+                for (int prefabIndex = 0;
+                     prefabIndex < preparedPrefabData.Length;
+                     prefabIndex++)
+                {
+                    PrefabRenderData prefabData = preparedPrefabData[prefabIndex];
+                    if (prefabData == null || prefabData.parts == null ||
+                        !ContainsPrefab(records, prefabIndex))
+                    {
+                        continue;
+                    }
+
+                    for (int partIndex = 0;
+                         partIndex < prefabData.parts.Length;
+                         partIndex++)
+                    {
+                        PendingPartMatrixBuild partBuild =
+                            new PendingPartMatrixBuild
+                            {
+                                prefabIndex = prefabIndex,
+                                part = prefabData.parts[partIndex],
+                                outputMatrices = new NativeArray<float4x4>(
+                                    treeCount,
+                                    Allocator.Persistent
+                                )
+                            };
+                        pending.parts.Add(partBuild);
+
+                        BuildPartMatricesJob partJob =
+                            new BuildPartMatricesJob
+                            {
+                                rootMatrices = pending.rootMatrices,
+                                outputMatrices = partBuild.outputMatrices,
+                                localPartMatrix =
+                                    partBuild.part.burstLocalMatrix
+                            };
+                        JobHandle partHandle = partJob.Schedule(
+                            treeCount,
+                            64,
+                            rootHandle
+                        );
+                        combinedHandle = JobHandle.CombineDependencies(
+                            combinedHandle,
+                            partHandle
+                        );
+                    }
+                }
+            }
+
+            pending.handle = combinedHandle;
+            state.pendingMatrixBuild = pending;
+        }
+        catch
+        {
+            pending.handle.Complete();
+            DisposePendingMatrixBuild(pending);
+            throw;
+        }
+    }
+
+    private bool ApplyCompletedMatrixBuilds(ChunkRuntimeState state)
+    {
+        PendingMatrixBuild pending = state.pendingMatrixBuild;
+        state.pendingMatrixBuild = null;
+
+        try
+        {
+            pending.handle.Complete();
+            if (pending.requestVersion != state.requestVersion ||
+                !state.wantsToLoad ||
+                !string.Equals(
+                    pending.chunkName,
+                    state.chunk.name,
+                    StringComparison.Ordinal
+                ))
+            {
+                return false;
+            }
+
+            using (Stage3Profiler.ApplyCompletedMatrices.Auto())
+            {
+                BuildManagedInstancedBatches(state, pending);
+                if (useSpatialSubChunks)
+                {
+                    using (Stage3Profiler.BuildSubChunkBatches.Auto())
+                    {
+                        BuildSubChunkBatches(state, pending);
+                    }
+                }
+                else
+                {
+                    ClearSubChunkBatches(state.subChunks);
+                }
+            }
+
+            return true;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError(
+                $"Failed to apply matrix build for '{state.chunk.name}': " +
+                $"{exception.Message}",
+                this
+            );
+            return false;
+        }
+        finally
+        {
+            DisposePendingMatrixBuild(pending);
+        }
+    }
+
+    private void BuildManagedInstancedBatches(
+        ChunkRuntimeState state,
+        PendingMatrixBuild pending)
+    {
+        ClearBatches(state);
+        for (int i = 0; i < instancedRootMatricesByPrefab.Length; i++)
+        {
+            if (instancedRootMatricesByPrefab[i] != null)
+            {
+                instancedRootMatricesByPrefab[i].Clear();
+            }
+        }
+        activeInstancedPrefabIndices.Clear();
+
+        for (int i = 0; i < pending.trees.Length; i++)
+        {
+            int prefabIndex = pending.trees[i].prefabIndex;
+            if (prefabIndex < 0 ||
+                prefabIndex >= preparedPrefabData.Length ||
+                preparedPrefabData[prefabIndex] == null)
             {
                 continue;
             }
 
-            if (!matricesByPrefab.TryGetValue(treeData.prefabIndex,
-                    out List<Matrix4x4> matrices))
+            List<Matrix4x4> rootMatrices =
+                instancedRootMatricesByPrefab[prefabIndex];
+            if (rootMatrices == null)
             {
-                matrices = new List<Matrix4x4>(state.data.trees.Count);
-                matricesByPrefab.Add(treeData.prefabIndex, matrices);
+                rootMatrices = new List<Matrix4x4>(
+                    Mathf.Min(pending.trees.Length, MaxInstancesPerDraw)
+                );
+                instancedRootMatricesByPrefab[prefabIndex] = rootMatrices;
             }
 
-            PrefabRenderData prefabData = preparedPrefabData[treeData.prefabIndex];
-            Matrix4x4 rootMatrix = Matrix4x4.TRS(
-                treeData.position,
-                treeData.rotation,
-                treeData.scale
-            );
-
-            for (int i = 0; i < prefabData.parts.Length; i++)
+            if (rootMatrices.Count == 0)
             {
-                if (i == 0)
-                {
-                    matrices.Add(rootMatrix);
-                }
+                activeInstancedPrefabIndices.Add(prefabIndex);
             }
+
+            rootMatrices.Add(ToUnityMatrix(pending.rootMatrices[i]));
         }
 
-        foreach (KeyValuePair<int, List<Matrix4x4>> entry in matricesByPrefab)
+        int batchIndex = 0;
+        for (int partIndex = 0; partIndex < pending.parts.Count; partIndex++)
         {
-            int prefabIndex = entry.Key;
-            List<Matrix4x4> rootMatrices = entry.Value;
-            PrefabRenderData prefabData = preparedPrefabData[prefabIndex];
-            for (int partIndex = 0; partIndex < prefabData.parts.Length; partIndex++)
+            PendingPartMatrixBuild partBuild = pending.parts[partIndex];
+            int prefabIndex = partBuild.prefabIndex;
+            int matchingCount = CountPrefab(pending.trees, prefabIndex);
+            if (matchingCount == 0)
             {
-                RenderPart part = prefabData.parts[partIndex];
-                Matrix4x4[] matrices = new Matrix4x4[rootMatrices.Count];
-                for (int i = 0; i < rootMatrices.Count; i++)
+                continue;
+            }
+
+            int written = 0;
+            int start = 0;
+            while (written < matchingCount)
+            {
+                int count = Mathf.Min(
+                    MaxInstancesPerDraw,
+                    matchingCount - written
+                );
+                RenderBatch batch;
+                if (batchIndex < state.batches.Count)
                 {
-                    matrices[i] = rootMatrices[i] * part.localMatrix;
+                    batch = state.batches[batchIndex];
+                }
+                else
+                {
+                    batch = new RenderBatch();
+                    state.batches.Add(batch);
                 }
 
-                for (int start = 0; start < matrices.Length; start += MaxInstancesPerDraw)
+                if (batch.matrices == null || batch.matrices.Length < count)
                 {
-                    int count = Mathf.Min(MaxInstancesPerDraw, matrices.Length - start);
-                    Matrix4x4[] drawMatrices = new Matrix4x4[count];
-                    Array.Copy(matrices, start, drawMatrices, 0, count);
-                    state.batches.Add(new RenderBatch
-                    {
-                        mesh = part.mesh,
-                        material = part.material,
-                        submeshIndex = part.submeshIndex,
-                        matrices = drawMatrices,
-                        bounds = state.bounds
-                    });
+                    batch.matrices = new Matrix4x4[count];
                 }
+
+                int batchMatrixIndex = 0;
+                for (; start < pending.trees.Length &&
+                       batchMatrixIndex < count;
+                     start++)
+                {
+                    if (pending.trees[start].prefabIndex != prefabIndex)
+                    {
+                        continue;
+                    }
+
+                    batch.matrices[batchMatrixIndex++] =
+                        ToUnityMatrix(partBuild.outputMatrices[start]);
+                }
+
+                batch.mesh = partBuild.part.mesh;
+                batch.material = partBuild.part.material;
+                batch.submeshIndex = partBuild.part.submeshIndex;
+                batch.instanceCount = batchMatrixIndex;
+                batch.bounds = state.bounds;
+                batchIndex++;
+                written += batchMatrixIndex;
             }
         }
 
-        Profiler.EndSample();
-        return true;
+        state.activeBatchCount = batchIndex;
+    }
+
+    private void BuildSubChunkBatches(
+        ChunkRuntimeState state,
+        PendingMatrixBuild pending)
+    {
+        ChunkSubChunkData subChunks = state.subChunks;
+        ClearSubChunkBatches(subChunks);
+
+        if (pending.trees.Length == 0)
+        {
+            return;
+        }
+
+        float cellSize = state.bounds.size.x / SubChunkGridSize;
+        for (int cellIndex = 0;
+             cellIndex < subChunks.cells.Length;
+             cellIndex++)
+        {
+            SubChunkCell cell = subChunks.cells[cellIndex];
+            for (int partIndex = 0;
+                 partIndex < pending.parts.Count;
+                 partIndex++)
+            {
+                PendingPartMatrixBuild partBuild = pending.parts[partIndex];
+                int matchingCount = CountCellPrefab(
+                    pending.trees,
+                    state.bounds,
+                    cellSize,
+                    cellIndex,
+                    partBuild.prefabIndex
+                );
+                int written = 0;
+
+                while (written < matchingCount)
+                {
+                    int count = Mathf.Min(
+                        MaxInstancesPerDraw,
+                        matchingCount - written
+                    );
+                    RenderBatch batch = GetReusableBatch(
+                        cell.batches,
+                        cell.activeBatchCount
+                    );
+                    if (batch.matrices == null ||
+                        batch.matrices.Length < count)
+                    {
+                        batch.matrices = new Matrix4x4[count];
+                    }
+
+                    int matchedBeforeBatch = written;
+                    int matrixIndex = 0;
+                    for (int treeIndex = 0;
+                         treeIndex < pending.trees.Length &&
+                         matrixIndex < count;
+                         treeIndex++)
+                    {
+                        RawTreeRecord tree = pending.trees[treeIndex];
+                        if (tree.prefabIndex != partBuild.prefabIndex ||
+                            GetSubChunkCellIndex(
+                                new Vector3(tree.px, tree.py, tree.pz),
+                                state.bounds,
+                                cellSize
+                            ) != cellIndex)
+                        {
+                            continue;
+                        }
+
+                        if (matchedBeforeBatch > 0)
+                        {
+                            matchedBeforeBatch--;
+                            continue;
+                        }
+
+                        batch.matrices[matrixIndex++] =
+                            ToUnityMatrix(
+                                partBuild.outputMatrices[treeIndex]
+                            );
+                    }
+
+                    batch.mesh = partBuild.part.mesh;
+                    batch.material = partBuild.part.material;
+                    batch.submeshIndex = partBuild.part.submeshIndex;
+                    batch.instanceCount = matrixIndex;
+                    batch.bounds = cell.bounds;
+                    cell.activeBatchCount++;
+                    cell.instanceCount += matrixIndex;
+                    subChunks.totalBatchCount++;
+                    subChunks.totalInstanceCount += matrixIndex;
+                    written += matrixIndex;
+                }
+            }
+
+            cell.hasInstances = cell.activeBatchCount > 0;
+            if (cell.hasInstances)
+            {
+                subChunks.activeCellCount++;
+            }
+        }
+    }
+
+    private static RenderBatch GetReusableBatch(
+        List<RenderBatch> batches,
+        int batchIndex)
+    {
+        if (batchIndex < batches.Count)
+        {
+            return batches[batchIndex];
+        }
+
+        RenderBatch batch = new RenderBatch();
+        batches.Add(batch);
+        return batch;
+    }
+
+    private static int CountCellPrefab(
+        NativeArray<RawTreeRecord> trees,
+        Bounds chunkBounds,
+        float cellSize,
+        int cellIndex,
+        int prefabIndex)
+    {
+        int count = 0;
+        for (int i = 0; i < trees.Length; i++)
+        {
+            RawTreeRecord tree = trees[i];
+            if (tree.prefabIndex == prefabIndex &&
+                GetSubChunkCellIndex(
+                    new Vector3(tree.px, tree.py, tree.pz),
+                    chunkBounds,
+                    cellSize
+                ) == cellIndex)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static int GetSubChunkCellIndex(
+        Vector3 worldPosition,
+        Bounds chunkBounds,
+        float cellSize)
+    {
+        Vector3 local = worldPosition - chunkBounds.min;
+        int x = Mathf.Clamp(
+            Mathf.FloorToInt(local.x / cellSize),
+            0,
+            SubChunkGridSize - 1
+        );
+        int z = Mathf.Clamp(
+            Mathf.FloorToInt(local.z / cellSize),
+            0,
+            SubChunkGridSize - 1
+        );
+        return z * SubChunkGridSize + x;
+    }
+
+    private static void InitializeSubChunkBounds(
+        ChunkSubChunkData subChunks,
+        Bounds chunkBounds)
+    {
+        Vector3 cellSize = new Vector3(
+            chunkBounds.size.x / SubChunkGridSize,
+            chunkBounds.size.y,
+            chunkBounds.size.z / SubChunkGridSize
+        );
+
+        for (int z = 0; z < SubChunkGridSize; z++)
+        {
+            for (int x = 0; x < SubChunkGridSize; x++)
+            {
+                int cellIndex = z * SubChunkGridSize + x;
+                Vector3 center = chunkBounds.min + new Vector3(
+                    (x + 0.5f) * cellSize.x,
+                    chunkBounds.size.y * 0.5f,
+                    (z + 0.5f) * cellSize.z
+                );
+                subChunks.cells[cellIndex].bounds =
+                    new Bounds(center, cellSize);
+            }
+        }
+    }
+
+    private static void ClearSubChunkBatches(
+        ChunkSubChunkData subChunks)
+    {
+        subChunks.activeCellCount = 0;
+        subChunks.totalInstanceCount = 0;
+        subChunks.totalBatchCount = 0;
+        for (int i = 0; i < subChunks.cells.Length; i++)
+        {
+            SubChunkCell cell = subChunks.cells[i];
+            cell.activeBatchCount = 0;
+            cell.instanceCount = 0;
+            cell.hasInstances = false;
+        }
+    }
+
+    private static bool ContainsPrefab(
+        RawTreeRecord[] records,
+        int prefabIndex)
+    {
+        for (int i = 0; i < records.Length; i++)
+        {
+            if (records[i].prefabIndex == prefabIndex)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int CountPrefab(
+        NativeArray<RawTreeRecord> records,
+        int prefabIndex)
+    {
+        int count = 0;
+        for (int i = 0; i < records.Length; i++)
+        {
+            if (records[i].prefabIndex == prefabIndex)
+            {
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    private static RawTreeRecord[] ConvertTreeDataToRawRecords(
+        ChunkData data)
+    {
+        if (data == null || data.trees == null)
+        {
+            return Array.Empty<RawTreeRecord>();
+        }
+
+        RawTreeRecord[] records = new RawTreeRecord[data.trees.Count];
+        for (int i = 0; i < data.trees.Count; i++)
+        {
+            TreeData tree = data.trees[i];
+            records[i] = new RawTreeRecord(
+                tree.position.x,
+                tree.position.y,
+                tree.position.z,
+                tree.rotation.x,
+                tree.rotation.y,
+                tree.rotation.z,
+                tree.rotation.w,
+                tree.scale.x,
+                tree.scale.y,
+                tree.scale.z,
+                tree.prefabIndex
+            );
+        }
+
+        return records;
+    }
+
+    private static Matrix4x4 ToUnityMatrix(float4x4 matrix)
+    {
+        return new Matrix4x4(
+            new Vector4(matrix.c0.x, matrix.c0.y, matrix.c0.z, matrix.c0.w),
+            new Vector4(matrix.c1.x, matrix.c1.y, matrix.c1.z, matrix.c1.w),
+            new Vector4(matrix.c2.x, matrix.c2.y, matrix.c2.z, matrix.c2.w),
+            new Vector4(matrix.c3.x, matrix.c3.y, matrix.c3.z, matrix.c3.w)
+        );
     }
 
     private void SubmitInstancedBatches(ChunkRuntimeState state)
     {
-        for (int i = 0; i < state.batches.Count; i++)
+        SubmitBatches(state.batches, state.activeBatchCount);
+    }
+
+    private void SubmitSubChunkBatches(ChunkRuntimeState state)
+    {
+        using (Stage3Profiler.SubmitSubChunkBatches.Auto())
         {
-            RenderBatch batch = state.batches[i];
-            if (batch.mesh == null || batch.material == null || batch.matrices.Length == 0)
+            ChunkSubChunkData subChunks = state.subChunks;
+            for (int cellIndex = 0;
+                 cellIndex < subChunks.cells.Length;
+                 cellIndex++)
             {
-                continue;
+                SubChunkCell cell = subChunks.cells[cellIndex];
+                if (!cell.hasInstances)
+                {
+                    continue;
+                }
+
+                using (Stage3Profiler.SubChunkVisibility.Auto())
+                {
+                    bool visible;
+                    using (Stage3Profiler.SubChunkVisibilityTest.Auto())
+                    {
+                        visible = GeometryUtility.TestPlanesAABB(
+                            frustumPlanes,
+                            cell.bounds
+                        );
+                    }
+
+                    if (!visible)
+                    {
+                        continue;
+                    }
+                }
+
+                frameActiveSubChunkCells++;
+                SubmitBatches(cell.batches, cell.activeBatchCount);
             }
+        }
+    }
 
-            RenderParams renderParams = new RenderParams(batch.material)
+    private void SubmitBatches(
+        List<RenderBatch> batches,
+        int activeBatchCount)
+    {
+        using (Stage3Profiler.SubmitBatches.Auto())
+        {
+            for (int i = 0; i < activeBatchCount; i++)
             {
-                worldBounds = batch.bounds,
-                shadowCastingMode = instancedCastShadows
-                    ? ShadowCastingMode.On
-                    : ShadowCastingMode.Off,
-                receiveShadows = instancedReceiveShadows,
-                layer = gameObject.layer,
-                camera = renderCamera
-            };
+                RenderBatch batch = batches[i];
+                if (batch.mesh == null || batch.material == null ||
+                    batch.matrices == null || batch.instanceCount == 0)
+                {
+                    continue;
+                }
 
-            Graphics.RenderMeshInstanced(
-                in renderParams,
-                batch.mesh,
-                batch.submeshIndex,
-                batch.matrices,
-                batch.matrices.Length
-            );
-            frameSubmittedInstances += batch.matrices.Length;
+                RenderParams renderParams = new RenderParams(batch.material)
+                {
+                    worldBounds = batch.bounds,
+                    shadowCastingMode = instancedCastShadows
+                        ? ShadowCastingMode.On
+                        : ShadowCastingMode.Off,
+                    receiveShadows = instancedReceiveShadows,
+                    layer = gameObject.layer,
+                    camera = renderCamera
+                };
+
+                using (Stage3Profiler.RenderMeshInstanced.Auto())
+                {
+                    Graphics.RenderMeshInstanced(
+                        in renderParams,
+                        batch.mesh,
+                        batch.submeshIndex,
+                        batch.matrices,
+                        batch.instanceCount
+                    );
+                }
+
+                frameSubmittedInstances += batch.instanceCount;
+                frameSubmittedDrawCalls++;
+            }
         }
     }
 
@@ -654,11 +1801,13 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
             }
 
             ClearBatches(state);
+            ClearSubChunkBatches(state.subChunks);
             state.loaded = false;
             state.unloading = false;
             state.individualMode = false;
             state.nextTreeIndex = 0;
             state.data = null;
+            state.rawRecords = null;
             state.rebuildRequested = false;
             pendingUnloads.RemoveAt(i);
 
@@ -683,79 +1832,258 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
 
     private void CancelLoad(ChunkRuntimeState state)
     {
+        CancelAsyncChunkParse(state);
+        DisposePendingMatrixBuild(state);
+        state.requestVersion++;
         ClearBatches(state);
+        ClearSubChunkBatches(state.subChunks);
         state.data = null;
+        state.rawRecords = null;
         state.nextTreeIndex = 0;
         QueueUnload(state);
     }
 
     private void ClearBatches(ChunkRuntimeState state)
     {
-        state.batches.Clear();
+        state.activeBatchCount = 0;
     }
 
-    private ChunkData GetChunkData(string chunkName)
+    private bool TryGetCachedChunkData(
+        string chunkName,
+        out ChunkData data)
     {
         if (parsedDataCache.TryGetValue(chunkName, out CachedChunkData cached))
         {
             TouchCacheEntry(chunkName, cached);
-            return cached.data;
+            data = cached.data;
+            return true;
         }
 
-        TextAsset jsonAsset = Resources.Load<TextAsset>($"{jsonResourcesPath}/{chunkName}");
-        if (jsonAsset == null)
-        {
-            Debug.LogWarning($"Chunk tree data not found for '{chunkName}'.", this);
-            return null;
-        }
+        data = null;
+        return false;
+    }
 
-        ChunkData data = null;
+    private bool BeginAsyncChunkParse(ChunkRuntimeState state)
+    {
+        string chunkName = state.chunk.name;
+        Profiler.BeginSample("ChunkTreeRuntimeLoader.ResourcesLoad");
+        TextAsset jsonAsset;
         try
         {
-            Profiler.BeginSample("ChunkTreeRuntimeLoader.JsonParse");
-            data = JsonUtility.FromJson<ChunkData>(jsonAsset.text);
-            Profiler.EndSample();
-        }
-        catch (ArgumentException exception)
-        {
-            Debug.LogError($"Invalid tree data in '{chunkName}': {exception.Message}", this);
+            jsonAsset = Resources.Load<TextAsset>(
+                $"{jsonResourcesPath}/{chunkName}"
+            );
         }
         finally
         {
-            Resources.UnloadAsset(jsonAsset);
+            Profiler.EndSample();
         }
 
-        if (data == null)
+        if (jsonAsset == null)
         {
-            return null;
+            Debug.LogWarning($"Chunk tree data not found for '{chunkName}'.", this);
+            return false;
         }
 
-        int estimatedBytes = EstimateChunkDataBytes(data);
-        if (maxCachedDataBytes > 0 && estimatedBytes <= maxCachedDataBytes)
+        string jsonText = jsonAsset.text;
+        Resources.UnloadAsset(jsonAsset);
+
+        state.requestVersion++;
+        state.parseVersion = state.requestVersion;
+        state.parseCancellation = new CancellationTokenSource();
+        CancellationToken cancellationToken = state.parseCancellation.Token;
+        state.parseTask = Task.Run(
+            () => RawChunkJsonParser.Parse(jsonText, cancellationToken),
+            cancellationToken
+        );
+        return true;
+    }
+
+    private bool CompleteAsyncChunkParse(ChunkRuntimeState state)
+    {
+        Task<RawTreeRecord[]> parseTask = state.parseTask;
+        state.parseTask = null;
+
+        CancellationTokenSource cancellation = state.parseCancellation;
+        state.parseCancellation = null;
+
+        try
         {
-            while (parsedDataBytes + estimatedBytes > maxCachedDataBytes &&
-                   parsedDataLru.First != null)
+            if (state.parseVersion != state.requestVersion ||
+                !state.wantsToLoad ||
+                parseTask == null ||
+                parseTask.IsCanceled)
             {
-                string oldestName = parsedDataLru.First.Value;
-                parsedDataLru.RemoveFirst();
-                if (parsedDataCache.TryGetValue(oldestName, out CachedChunkData oldest))
-                {
-                    parsedDataBytes -= oldest.estimatedBytes;
-                    parsedDataCache.Remove(oldestName);
-                }
+                return false;
             }
 
-            CachedChunkData entry = new CachedChunkData
+            RawTreeRecord[] records = parseTask.GetAwaiter().GetResult();
+            Profiler.BeginSample("ChunkTreeRuntimeLoader.ApplyParsedChunk");
+            try
             {
-                data = data,
-                estimatedBytes = estimatedBytes
-            };
-            entry.node = parsedDataLru.AddLast(chunkName);
-            parsedDataCache[chunkName] = entry;
-            parsedDataBytes += estimatedBytes;
+                ChunkData data = ConvertRawChunkData(
+                    state.chunk.name,
+                    records
+                );
+                CacheChunkData(state.chunk.name, data, records);
+                state.data = data;
+                state.rawRecords = records;
+                if (!state.wantsIndividual)
+                {
+                    ScheduleMatrixBuild(state);
+                }
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
+
+            return true;
+        }
+        catch (OperationCanceledException)
+        {
+            return false;
+        }
+        catch (Exception exception)
+        {
+            Debug.LogError(
+                $"Invalid tree data in '{state.chunk.name}': " +
+                $"{exception.Message}",
+                this
+            );
+            return false;
+        }
+        finally
+        {
+            if (cancellation != null)
+            {
+                cancellation.Dispose();
+            }
+        }
+    }
+
+    private static ChunkData ConvertRawChunkData(
+        string chunkName,
+        RawTreeRecord[] records)
+    {
+        ChunkData data = new ChunkData
+        {
+            chunkName = chunkName,
+            trees = new List<TreeData>(records.Length)
+        };
+
+        for (int i = 0; i < records.Length; i++)
+        {
+            RawTreeRecord record = records[i];
+            data.trees.Add(new TreeData
+            {
+                position = new Vector3(record.px, record.py, record.pz),
+                rotation = new Quaternion(
+                    record.qx,
+                    record.qy,
+                    record.qz,
+                    record.qw
+                ),
+                scale = new Vector3(record.sx, record.sy, record.sz),
+                prefabIndex = record.prefabIndex
+            });
         }
 
         return data;
+    }
+
+    private void CacheChunkData(
+        string chunkName,
+        ChunkData data,
+        RawTreeRecord[] rawRecords)
+    {
+        if (data == null)
+        {
+            return;
+        }
+
+        int estimatedBytes = EstimateChunkDataBytes(data);
+        if (maxCachedDataBytes <= 0 || estimatedBytes > maxCachedDataBytes)
+        {
+            return;
+        }
+
+        while (parsedDataBytes + estimatedBytes > maxCachedDataBytes &&
+               parsedDataLru.First != null)
+        {
+            string oldestName = parsedDataLru.First.Value;
+            parsedDataLru.RemoveFirst();
+            if (parsedDataCache.TryGetValue(oldestName, out CachedChunkData oldest))
+            {
+                parsedDataBytes -= oldest.estimatedBytes;
+                parsedDataCache.Remove(oldestName);
+            }
+        }
+
+        CachedChunkData entry = new CachedChunkData
+        {
+            data = data,
+            rawRecords = rawRecords,
+            estimatedBytes = estimatedBytes
+        };
+        entry.node = parsedDataLru.AddLast(chunkName);
+        parsedDataCache[chunkName] = entry;
+        parsedDataBytes += estimatedBytes;
+    }
+
+    private static void CancelAsyncChunkParse(ChunkRuntimeState state)
+    {
+        if (state.parseCancellation != null)
+        {
+            state.parseCancellation.Cancel();
+            state.parseCancellation.Dispose();
+            state.parseCancellation = null;
+        }
+
+        state.parseTask = null;
+    }
+
+    private static void DisposePendingMatrixBuild(ChunkRuntimeState state)
+    {
+        if (state.pendingMatrixBuild == null)
+        {
+            return;
+        }
+
+        PendingMatrixBuild pending = state.pendingMatrixBuild;
+        state.pendingMatrixBuild = null;
+        pending.handle.Complete();
+        DisposePendingMatrixBuild(pending);
+    }
+
+    private static void DisposePendingMatrixBuild(PendingMatrixBuild pending)
+    {
+        if (pending == null)
+        {
+            return;
+        }
+
+        if (pending.trees.IsCreated)
+        {
+            pending.trees.Dispose();
+        }
+
+        if (pending.rootMatrices.IsCreated)
+        {
+            pending.rootMatrices.Dispose();
+        }
+
+        for (int i = 0; i < pending.parts.Count; i++)
+        {
+            NativeArray<float4x4> outputMatrices =
+                pending.parts[i].outputMatrices;
+            if (outputMatrices.IsCreated)
+            {
+                outputMatrices.Dispose();
+            }
+        }
+
+        pending.parts.Clear();
     }
 
     private static int EstimateChunkDataBytes(ChunkData data)
@@ -832,7 +2160,8 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
                         mesh = meshFilter.sharedMesh,
                         material = material,
                         submeshIndex = submeshIndex,
-                        localMatrix = localMatrix
+                        localMatrix = localMatrix,
+                        burstLocalMatrix = ToBurstMatrix(localMatrix)
                     });
                 }
             }
@@ -846,12 +2175,24 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
         return result;
     }
 
+    private static float4x4 ToBurstMatrix(Matrix4x4 matrix)
+    {
+        return new float4x4(
+            new float4(matrix.m00, matrix.m10, matrix.m20, matrix.m30),
+            new float4(matrix.m01, matrix.m11, matrix.m21, matrix.m31),
+            new float4(matrix.m02, matrix.m12, matrix.m22, matrix.m32),
+            new float4(matrix.m03, matrix.m13, matrix.m23, matrix.m33)
+        );
+    }
+
     private void LogDiagnostics()
     {
         Debug.Log(
             $"Tree streaming: loadedChunks={loadedChunks}, preparedChunks={preparedChunks}, " +
             $"submittedInstances={frameSubmittedInstances}, " +
+            $"submittedDrawCalls={frameSubmittedDrawCalls}, " +
             $"visibleInstancedChunks={frameActiveRenderChunks}, " +
+            $"visibleSubChunkCells={frameActiveSubChunkCells}, " +
             $"activeIndividualTrees={frameActiveIndividualTrees}, " +
             $"parsedCacheBytes={parsedDataBytes}/{maxCachedDataBytes}, " +
             $"lastRequestToReady={(lastChunkReadyTime - lastChunkRequestTime):F3}s",
@@ -896,6 +2237,10 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
 
         foreach (ChunkRuntimeState state in chunkStates.Values)
         {
+            CancelAsyncChunkParse(state);
+            DisposePendingMatrixBuild(state);
+            state.requestVersion++;
+
             for (int i = 0; i < state.individualTrees.Count; i++)
             {
                 if (state.individualTrees[i] != null)
@@ -907,7 +2252,9 @@ public class ChunkTreeRuntimeLoader : MonoBehaviour
 
             state.individualTrees.Clear();
             state.batches.Clear();
+            ClearSubChunkBatches(state.subChunks);
             state.data = null;
+            state.rawRecords = null;
             state.nextTreeIndex = 0;
             state.loading = false;
             state.loaded = false;
