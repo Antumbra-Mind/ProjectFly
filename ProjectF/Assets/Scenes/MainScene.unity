@@ -39826,6 +39826,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: GuffyAhPlane
       objectReference: {fileID: 0}
+    - target: {fileID: 6166248075825409143, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: m_Mass
+      value: 1000
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
