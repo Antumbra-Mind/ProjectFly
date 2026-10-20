@@ -20,7 +20,7 @@ public class AircraftHUD : MonoBehaviour
     private void Awake()
     {
         if (GuffuAhPlane != null)
-            input = GuffuAhPlane.GetComponent<AircraftInput>();
+        input = GuffuAhPlane.GetComponent<AircraftInput>();
         if (HUDcontent == null) return;
         previousHideHUD = input.HideHUD;
         HUDcontent.SetActive(!input.HideHUD);
