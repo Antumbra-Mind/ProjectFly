@@ -1,5 +1,7 @@
-using UnityEngine;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
+using UnityEngine;
 using System.IO;
 
 public class ChunkTreeSpawner : MonoBehaviour
@@ -21,13 +23,13 @@ public class ChunkTreeSpawner : MonoBehaviour
     [ContextMenu("Spawn and Bake Chunks (Zero Memory Leak)")]
     public void SpawnAndBakeChunks()
     {
+#if UNITY_EDITOR
         if (treePrefabs == null || treePrefabs.Length == 0)
         {
             Debug.LogError("Please assign at least one tree prefab!");
             return;
         }
 
-        // Ensure target directory exists
         if (!Directory.Exists(saveFolderPath))
         {
             Directory.CreateDirectory(saveFolderPath);
@@ -43,14 +45,12 @@ public class ChunkTreeSpawner : MonoBehaviour
             foreach (Transform chunk in transform)
             {
                 currentChunkIndex++;
-
                 EditorUtility.DisplayProgressBar(
                     "Spawning and Baking Chunks",
                     $"Baking Chunk {currentChunkIndex}/{totalChunks} ({chunk.name})...",
                     (float)currentChunkIndex / totalChunks
                 );
 
-                // Clear chunk contents
                 for (int i = chunk.childCount - 1; i >= 0; i--)
                 {
                     DestroyImmediate(chunk.GetChild(i).gameObject);
@@ -58,41 +58,62 @@ public class ChunkTreeSpawner : MonoBehaviour
 
                 Vector3 chunkPos = chunk.position;
                 float halfSize = 250f;
-
                 for (int i = 0; i < treesPerChunk; i++)
                 {
                     float randomX = Random.Range(-halfSize, halfSize);
                     float randomZ = Random.Range(-halfSize, halfSize);
+                    Vector3 rayOrigin = new Vector3(
+                        chunkPos.x + randomX,
+                        chunkPos.y + 1000f,
+                        chunkPos.z + randomZ
+                    );
 
-                    Vector3 rayOrigin = new Vector3(chunkPos.x + randomX, chunkPos.y + 1000f, chunkPos.z + randomZ);
-
-                    if (Physics.Raycast(rayOrigin, Vector3.down, out RaycastHit hit, 2000f, terrainLayer))
+                    if (!Physics.Raycast(
+                            rayOrigin,
+                            Vector3.down,
+                            out RaycastHit hit,
+                            2000f,
+                            terrainLayer))
                     {
-                        if (Vector3.Angle(hit.normal, Vector3.up) < 35f)
-                        {
-                            GameObject randomTreePrefab = treePrefabs[Random.Range(0, treePrefabs.Length)];
-                            GameObject spawnedTree = Instantiate(randomTreePrefab, hit.point, Quaternion.identity, chunk);
-
-                            spawnedTree.transform.rotation = Quaternion.Euler(0f, Random.Range(0f, 360f), 0f);
-                            float scale = Random.Range(minScale, maxScale);
-                            spawnedTree.transform.localScale = new Vector3(scale, scale, scale);
-
-                            totalTrees++;
-                        }
+                        continue;
                     }
+
+                    if (Vector3.Angle(hit.normal, Vector3.up) >= 35f)
+                    {
+                        continue;
+                    }
+
+                    GameObject randomTreePrefab =
+                        treePrefabs[Random.Range(0, treePrefabs.Length)];
+                    GameObject spawnedTree = Instantiate(
+                        randomTreePrefab,
+                        hit.point,
+                        Quaternion.identity,
+                        chunk
+                    );
+                    spawnedTree.transform.rotation = Quaternion.Euler(
+                        0f,
+                        Random.Range(0f, 360f),
+                        0f
+                    );
+                    float scale = Random.Range(minScale, maxScale);
+                    spawnedTree.transform.localScale =
+                        new Vector3(scale, scale, scale);
+                    totalTrees++;
                 }
 
-                // 1. Save processed chunk as a Prefab Asset to disk
-                string prefabPath = $"{saveFolderPath}/{chunk.name}.prefab";
-                GameObject bakedPrefab = PrefabUtility.SaveAsPrefabAsset(chunk.gameObject, prefabPath);
+                string prefabPath =
+                    $"{saveFolderPath}/{chunk.name}.prefab";
+                PrefabUtility.SaveAsPrefabAsset(
+                    chunk.gameObject,
+                    prefabPath
+                );
 
-                // 2. Clear all child objects of the chunk on scene to free scene memory
                 for (int i = chunk.childCount - 1; i >= 0; i--)
                 {
                     DestroyImmediate(chunk.GetChild(i).gameObject);
                 }
 
-                // 3. Clear Undo, Unload Unused Assets and trigger Garbage Collection after EACH chunk
                 Undo.ClearAll();
                 EditorUtility.UnloadUnusedAssetsImmediate();
                 System.GC.Collect();
@@ -103,8 +124,16 @@ public class ChunkTreeSpawner : MonoBehaviour
             EditorUtility.ClearProgressBar();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-
-            Debug.Log($"Successfully baked {totalChunks} chunks ({totalTrees} trees) to '{saveFolderPath}'. Scene memory cleared!");
+            Debug.Log(
+                $"Successfully baked {totalChunks} chunks ({totalTrees} trees) " +
+                $"to '{saveFolderPath}'. Scene memory cleared!"
+            );
         }
+#else
+        Debug.LogWarning(
+            "Chunk spawning and baking is only available in the Unity Editor.",
+            this
+        );
+#endif
     }
 }
