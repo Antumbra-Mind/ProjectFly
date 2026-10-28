@@ -21,16 +21,20 @@ public class AircraftPhisics : MonoBehaviour
         float planeEng = stats.PlaneEnginePower;
         float planeAftb = stats.Afterburner;
         float airResist = stats.AirRessistanse;
+        float forceAmount = 0f;
 
-        //Суха тяга
-        float dryThrottle = math.clamp(thotle, 0f, 100f);
-        float fryTrust = (dryThrottle / 100f) * planeEng;
-        //Прискоренна на 100-110%
-        float AfterBurn = math.clamp(thotle - 100f, 0f, 10f);
-        float AfterBurntrust = (AfterBurn / 10f) * planeAftb;
-        //Сумуємо.
-        float forceAmount = fryTrust + AfterBurntrust;
-        //ну і єбашимо в addForce
+        if(thotle <= 100f)
+        {
+            //Суха тяга
+            float dryThrottle = math.clamp(thotle, 0f, 100f);
+            forceAmount = (dryThrottle / 100f) * planeEng;
+        }
+        else
+        {
+            //Прискорення. Нарешті суха тяга не сумується. А замінюється, якщо значення перевалює за 100%
+            float afbProcces = math.clamp(thotle - 100f, 0f, 10f) / 10f;
+            forceAmount = math.lerp(planeEng, Afterburner, afbProcces);
+        }
         rigidbody.AddForce(transform.forward * forceAmount);
 
         //Частина коду для застування опора повітря. Да все настільки по йобнутому
