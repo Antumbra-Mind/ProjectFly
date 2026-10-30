@@ -24,6 +24,7 @@ public class AircraftStats : MonoBehaviour
     public float BaseDragCoefficient = 0.02f;
     public float WingArea;
     public float AirDensity = 1.225f;
+    public AnimationCurve LiftCoefficientCurve;
 
     private void Awake()
     {

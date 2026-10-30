@@ -48,27 +48,15 @@ public class AircraftPhisics : MonoBehaviour
         rigidbody.AddForce(transform.forward * forceAmount);
         debugTimer += Time.fixedDeltaTime;
 
-        /*if (debugTimer >= 0.5f)
-        {
-            debugTimer = 0f;
-
-            Debug.Log(
-                $"Speed: {rigidbody.linearVelocity.magnitude:F2} | " +
-                $"Velocity: {rigidbody.linearVelocity} | " +
-                $"Mass: {rigidbody.mass} | " +
-                $"Damping: {rigidbody.linearDamping} | " +
-                $"Kinematic: {rigidbody.isKinematic} | " +
-                $"Constraints: {rigidbody.constraints}"
-            );
-        }*/
         //Частина коду для застування опора повітря. 
         Vector3 velocity = rigidbody.linearVelocity;
         float speed = velocity.magnitude;
         if(speed > 0.01f)
         {
+            //Частина коду Для АОА
             float forwardSpeed = Vector3.Dot(velocity, transform.forward);
             float verticalSpeed = Vector3.Dot(velocity, transform.up);
-
+            //Опір повітрю
             float DinamicPressure = 0.5f * airD * speed * speed;
             if (airbrake > 0.5f) {
                 baseDc += airbrakepower;
@@ -77,15 +65,28 @@ public class AircraftPhisics : MonoBehaviour
 
             Vector3 dragForce = -velocity.normalized * dragforceMag;
             rigidbody.AddForce(dragForce);
-
+            //Саме АОА
             float AOA = Mathf.Atan2(-verticalSpeed,forwardSpeed) * Mathf.Rad2Deg;
+            //ЙОБАНА КРИВАААА
+            float CL = stats.LiftCoefficientCurve.Evaluate(AOA);
 
+
+            //І нарешті Підйомна сила. Магнітуда і Напрямок
+            float liftForceMag = DinamicPressure * wingA * CL;
+            Vector3 liftDirection = Vector3.Cross(velocity.normalized, transform.right).normalized;
+
+            if(liftDirection.sqrMagnitude > 0.0001f)
+            {
+                //і на добивочку множимо і їбашимо в аддфорс
+                Vector3 LiftForce = liftDirection * liftForceMag;
+                rigidbody.AddForce(LiftForce);
+            }
 
 
         }
 
 
-        //і тут починається гра з фізикою.. AOA
+
         
 
      }
