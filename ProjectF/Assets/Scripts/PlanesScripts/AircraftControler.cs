@@ -14,6 +14,7 @@ public class AircraftControler : MonoBehaviour
     public float Roll;
     public float Yaw;
     public float throttle = 0f;
+    public float AirBrake;
     [SerializeField] private float throttlespeed = 50f;
 
     private void Awake()
@@ -36,5 +37,6 @@ public class AircraftControler : MonoBehaviour
             throttle = math.clamp(throttle - throttlespeed * Time.deltaTime, 0f, 110f);
         }
 
+        AirBrake = aircraftInput.Airbrake;
     }
 }

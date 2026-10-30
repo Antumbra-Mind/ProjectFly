@@ -30,6 +30,8 @@ public class AircraftPhisics : MonoBehaviour
         float wingA = stats.WingArea;
         float baseDc = stats.BaseDragCoefficient;
         float airD = stats.AirDensity;
+        float airbrake = controler.AirBrake;
+        float airbrakepower = stats.AirBrakePower;
 
         if (thotle <= 100f)
         {
@@ -46,7 +48,7 @@ public class AircraftPhisics : MonoBehaviour
         rigidbody.AddForce(transform.forward * forceAmount);
         debugTimer += Time.fixedDeltaTime;
 
-        if (debugTimer >= 0.5f)
+        /*if (debugTimer >= 0.5f)
         {
             debugTimer = 0f;
 
@@ -58,13 +60,16 @@ public class AircraftPhisics : MonoBehaviour
                 $"Kinematic: {rigidbody.isKinematic} | " +
                 $"Constraints: {rigidbody.constraints}"
             );
-        }
+        }*/
         //Частина коду для застування опора повітря. 
         Vector3 velocity = rigidbody.linearVelocity;
         float speed = velocity.magnitude;
         if(speed > 0.01f)
         {
             float DinamicPressure = 0.5f * airD * speed * speed;
+            if (airbrake > 0.5f) {
+                baseDc += airbrakepower;
+            }
             float dragforceMag = DinamicPressure * wingA * baseDc;
 
             Vector3 dragForce = -velocity.normalized * dragforceMag;
