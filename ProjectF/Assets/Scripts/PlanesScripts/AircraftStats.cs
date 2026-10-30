@@ -15,13 +15,15 @@ public class AircraftStats : MonoBehaviour
     public float PlaneMaxSpeed;
     public float PlaneEnginePower;
     public float Afterburner;
-    public float AirRessistanse;
     public float AirBrakePower;
     public float GroundBrakePower;
     public float YawSpeed;
     public float PitchSpeed;
     public float RollSpeed;
     public float LandGearTimeReveal;
+    public float BaseDragCoefficient = 0.02f;
+    public float WingArea;
+    public float AirDensity = 1.225f;
 
     private void Awake()
     {
@@ -29,25 +31,25 @@ public class AircraftStats : MonoBehaviour
         {
             case AircraftModel.GripenE:
                 PlaneMass = 8000f;
-                PlaneMaxSpeed = 2470f; //км на годину. Далі треба буде перевести в Метри на секунду ig
+                PlaneMaxSpeed = 2470f / 3.6f; //Метри на секунду
                 PlaneEnginePower = 64000f;//Потужність двигуна
                 Afterburner = 98000f;//Потужність двигуна на максимумі=Афтербьорнер
-                AirRessistanse = 10f; //Це ще розбирати і розбирати... Супротив Повітря.
-                AirBrakePower = 10f; //Це ще розбирати і розбирати...
-                GroundBrakePower = 10f;
+                WingArea = 30f;     //Розмах крила в метрах квадратних
+                AirBrakePower = 10f; //Сила повітряного тормозу
+                GroundBrakePower = 10f; //Сила Наземного тормощу        
                 YawSpeed = 40f;
                 PitchSpeed = 40f;
                 RollSpeed = 50f;
-                LandGearTimeReveal = 10f;
+                LandGearTimeReveal = 10f; //Швидкість за яку шасі піднімуться/сховаються
                 //Люба характеристика де 10f-затичка.
 
                 break;
             case AircraftModel.EuroFighterTyphoon:
                 PlaneMass = 11000f;
-                PlaneMaxSpeed = 2470f;
+                PlaneMaxSpeed = 2470f / 3.6f;
                 PlaneEnginePower = 120000f;
                 Afterburner = 180000f;
-                AirRessistanse = 10f; 
+                WingArea = 51.2f;
                 AirBrakePower = 10f; 
                 GroundBrakePower = 10f;
                 YawSpeed = 10f;

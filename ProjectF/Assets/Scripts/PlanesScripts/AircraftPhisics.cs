@@ -25,8 +25,11 @@ public class AircraftPhisics : MonoBehaviour
         float thotle = controler.throttle;
         float planeEng = stats.PlaneEnginePower;
         float planeAftb = stats.Afterburner;
-        float airResist = stats.AirRessistanse;
         float forceAmount = 0f;
+
+        float wingA = stats.WingArea;
+        float baseDc = stats.BaseDragCoefficient;
+        float airD = stats.AirDensity;
 
         if (thotle <= 100f)
         {
@@ -56,14 +59,15 @@ public class AircraftPhisics : MonoBehaviour
                 $"Constraints: {rigidbody.constraints}"
             );
         }
-        //Частина коду для застування опора повітря. Да все настільки по йобнутому
+        //Частина коду для застування опора повітря. 
         Vector3 velocity = rigidbody.linearVelocity;
         float speed = velocity.magnitude;
         if(speed > 0.01f)
         {
-            float speed2 = speed * speed;
-            float DragForceMagnitude = speed2 * airResist;
-            Vector3 dragForce = -velocity.normalized * DragForceMagnitude;
+            float DinamicPressure = 0.5f * airD * speed * speed;
+            float dragforceMag = DinamicPressure * wingA * baseDc;
+
+            Vector3 dragForce = -velocity.normalized * dragforceMag;
             rigidbody.AddForce(dragForce);
         }
      }
