@@ -66,6 +66,9 @@ public class AircraftPhisics : MonoBehaviour
         float speed = velocity.magnitude;
         if(speed > 0.01f)
         {
+            float forwardSpeed = Vector3.Dot(velocity, transform.forward);
+            float verticalSpeed = Vector3.Dot(velocity, transform.up);
+
             float DinamicPressure = 0.5f * airD * speed * speed;
             if (airbrake > 0.5f) {
                 baseDc += airbrakepower;
@@ -74,7 +77,17 @@ public class AircraftPhisics : MonoBehaviour
 
             Vector3 dragForce = -velocity.normalized * dragforceMag;
             rigidbody.AddForce(dragForce);
+
+            float AOA = Mathf.Atan2(-verticalSpeed,forwardSpeed) * Mathf.Rad2Deg;
+
+
+
         }
+
+
+        //і тут починається гра з фізикою.. AOA
+        
+
      }
 
 }
