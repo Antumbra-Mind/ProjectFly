@@ -56,22 +56,26 @@ public class AircraftPhisics : MonoBehaviour
         float speed = velocity.magnitude;
         if(speed > 0.01f)
         {
+
             //Частина коду Для АОА
             float forwardSpeed = Vector3.Dot(velocity, transform.forward);
             float verticalSpeed = Vector3.Dot(velocity, transform.up);
+            //Саме АОА
+            float AOA = Mathf.Atan2(-verticalSpeed, forwardSpeed) * Mathf.Rad2Deg;
+            //ЙОБАНА КРИВАААА
+            float CL = stats.LiftCoefficientCurve.Evaluate(AOA);
+            float CoefInductiveDrag = math.square(CL) / (Mathf.PI * oswaldEF * AR);
+
             //Опір повітрю
             float DinamicPressure = 0.5f * airD * speed * speed;
             if (airbrake > 0.5f) {
                 baseDc += airbrakepower;
             }
+            float DragCoef = baseDc + CoefInductiveDrag;
             float dragforceMag = DinamicPressure * wingA * baseDc;
 
             Vector3 dragForce = -velocity.normalized * dragforceMag;
             rigidbody.AddForce(dragForce);
-            //Саме АОА
-            float AOA = Mathf.Atan2(-verticalSpeed,forwardSpeed) * Mathf.Rad2Deg;
-            //ЙОБАНА КРИВАААА
-            float CL = stats.LiftCoefficientCurve.Evaluate(AOA);
 
 
             //І нарешті Підйомна сила. Магнітуда і Напрямок
@@ -85,7 +89,7 @@ public class AircraftPhisics : MonoBehaviour
                 rigidbody.AddForce(LiftForce);
             }
 
-            float CoefInductiveDrag = math.square(CL) /( Mathf.PI * oswaldEF * AR);
+
 
 
         }
