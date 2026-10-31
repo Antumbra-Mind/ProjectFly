@@ -7,9 +7,11 @@ public class AircraftPhisics : MonoBehaviour
     private AircraftControler controler;
     private AircraftStats stats;
     private float debugTimer;
+    private float AR;
     private void Start()
     {
         rigidbody.mass = stats.PlaneMass;
+        AR = math.square(stats.WingSpan) / stats.WingArea;
     }
 
     private void Awake()
@@ -32,6 +34,7 @@ public class AircraftPhisics : MonoBehaviour
         float airD = stats.AirDensity;
         float airbrake = controler.AirBrake;
         float airbrakepower = stats.AirBrakePower;
+        float oswaldEF = stats.OswaldEfficiency;
 
         if (thotle <= 100f)
         {
@@ -81,6 +84,8 @@ public class AircraftPhisics : MonoBehaviour
                 Vector3 LiftForce = liftDirection * liftForceMag;
                 rigidbody.AddForce(LiftForce);
             }
+
+            float CoefInductiveDrag = math.square(CL) /( Mathf.PI * oswaldEF * AR);
 
 
         }

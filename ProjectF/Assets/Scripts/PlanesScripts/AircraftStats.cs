@@ -23,7 +23,9 @@ public class AircraftStats : MonoBehaviour
     public float LandGearTimeReveal;
     public float BaseDragCoefficient = 0.02f;
     public float WingArea;
+    public float WingSpan;
     public float AirDensity = 1.225f;
+    public float OswaldEfficiency;
     public AnimationCurve LiftCoefficientCurve;
 
     private void Awake()
@@ -36,6 +38,8 @@ public class AircraftStats : MonoBehaviour
                 PlaneEnginePower = 64000f;//Потужність двигуна
                 Afterburner = 98000f;//Потужність двигуна на максимумі=Афтербьорнер
                 WingArea = 30f;     //Розмах крила в метрах квадратних
+                WingSpan = 8.6f;
+                OswaldEfficiency = 0.75f;
                 AirBrakePower = 0.3f; //Сила повітряного тормозу
                 GroundBrakePower = 10f; //Сила Наземного тормощу        
                 YawSpeed = 40f;
@@ -51,6 +55,8 @@ public class AircraftStats : MonoBehaviour
                 PlaneEnginePower = 120000f;
                 Afterburner = 180000f;
                 WingArea = 51.2f;
+                WingSpan = 10.95f;
+                OswaldEfficiency = 0.72f;
                 AirBrakePower = 0.5f; 
                 GroundBrakePower = 10f;
                 YawSpeed = 10f;
