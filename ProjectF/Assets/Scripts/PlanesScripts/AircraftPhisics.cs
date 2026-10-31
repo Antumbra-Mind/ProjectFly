@@ -72,7 +72,7 @@ public class AircraftPhisics : MonoBehaviour
                 baseDc += airbrakepower;
             }
             float DragCoef = baseDc + CoefInductiveDrag;
-            float dragforceMag = DinamicPressure * wingA * baseDc;
+            float dragforceMag = DinamicPressure * wingA * DragCoef;
 
             Vector3 dragForce = -velocity.normalized * dragforceMag;
             rigidbody.AddForce(dragForce);
