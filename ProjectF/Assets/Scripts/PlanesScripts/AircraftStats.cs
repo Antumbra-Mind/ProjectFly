@@ -17,9 +17,10 @@ public class AircraftStats : MonoBehaviour
     public float Afterburner;
     public float AirBrakePower;
     public float GroundBrakePower;
-    public float YawSpeed;
-    public float PitchSpeed;
-    public float RollSpeed;
+    public float _MaxYawAngVel;
+    public float _MaxPitchUpAngVel;
+    public float _MaxPitchDownAngVel;
+    public float _MaxRollAngVel;
     public float LandGearTimeReveal;
     public float BaseDragCoefficient = 0.02f;
     public float WingArea;
@@ -42,14 +43,15 @@ public class AircraftStats : MonoBehaviour
                 OswaldEfficiency = 0.75f;
                 AirBrakePower = 0.3f; //Сила повітряного тормозу
                 GroundBrakePower = 10f; //Сила Наземного тормощу        
-                YawSpeed = 40f;
-                PitchSpeed = 40f;
-                RollSpeed = 50f;
+                _MaxYawAngVel = 50f;
+                _MaxPitchUpAngVel = 60f;
+                _MaxPitchDownAngVel = 30f;
+                _MaxRollAngVel = 120f;
                 LandGearTimeReveal = 10f; //Швидкість за яку шасі піднімуться/сховаються
                 //Люба характеристика де 10f-затичка.
 
                 break;
-            case AircraftModel.EuroFighterTyphoon:
+            /*case AircraftModel.EuroFighterTyphoon:
                 PlaneMass = 11000f;
                 PlaneMaxSpeed = 2470f / 3.6f;
                 PlaneEnginePower = 120000f;
@@ -63,7 +65,7 @@ public class AircraftStats : MonoBehaviour
                 PitchSpeed = 10f;
                 RollSpeed = 10f;
                 LandGearTimeReveal = 10f;
-                break;
+                break;*/
         }
     }
 
