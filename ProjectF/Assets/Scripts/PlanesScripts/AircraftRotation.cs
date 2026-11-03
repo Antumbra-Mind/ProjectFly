@@ -12,6 +12,7 @@ public class AircraftRotation : MonoBehaviour
     private Vector3 _ErrorDiferrence;
 
 
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
@@ -21,6 +22,8 @@ public class AircraftRotation : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (rb == null || stats == null || controler == null) return;
+
         Pitch = controler.Pitch;
         if(Pitch > 0f)
         {
@@ -40,11 +43,18 @@ public class AircraftRotation : MonoBehaviour
 
         Vector3 _AllTarget = new Vector3(targetPitch, targetYaw, -targetRoll);
         Vector3 _LocalAngVel = transform.InverseTransformDirection(rb.angularVelocity);
+        float currentPitch = _LocalAngVel.x;
+        float currentYaw = _LocalAngVel.y;
+        float currentRoll = _LocalAngVel.z;
         _ErrorDiferrence = _AllTarget - _LocalAngVel;
 
+        float pitchAcceleration = CalculatePD(targetPitch,currentPitch,stats.KpPitch,stats.KdPitch);
+        float RollAcceleration = CalculatePD(-targetRoll,currentRoll,stats.KpRoll,stats.KdRoll);
+        float YawAcceleration = CalculatePD(targetYaw, currentYaw, stats.KpYaw, stats.KdYaw);
 
 
-        if (rb == null || stats == null || controler == null) return;
+
+
 
         /*float pitchAngle = controler.Pitch* stats.PitchSpeed * Time.fixedDeltaTime;
         float yawAngle = controler.Yaw* stats.YawSpeed * Time.fixedDeltaTime;
@@ -53,5 +63,11 @@ public class AircraftRotation : MonoBehaviour
         Quaternion deltaRotation = Quaternion.Euler(pitchAngle,yawAngle,-rollAngle);
 
         rb.MoveRotation(rb.rotation * deltaRotation);*/
+    }
+
+    float CalculatePD(float target, float current, float Kp, float Kd)
+    {
+        float AnglularAcceleration = Kp * (target - current) -Kd*current;
+        return AnglularAcceleration;
     }
 }

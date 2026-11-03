@@ -28,6 +28,12 @@ public class AircraftStats : MonoBehaviour
     public float AirDensity = 1.225f;
     public float OswaldEfficiency;
     public AnimationCurve LiftCoefficientCurve;
+    public float KpPitch;
+    public float KpRoll;
+    public float KpYaw;
+    public float KdPitch;
+    public float KdRoll;
+    public float KdYaw;
 
     private void Awake()
     {
@@ -47,6 +53,11 @@ public class AircraftStats : MonoBehaviour
                 _MaxPitchUpAngVel = 60f;
                 _MaxPitchDownAngVel = 30f;
                 _MaxRollAngVel = 120f;
+                KpPitch = 8f;
+                KpRoll = 10f;
+                KpYaw = 5f;
+                KdPitch = 2f;
+                KdRoll = 2.5f;
                 LandGearTimeReveal = 10f; //Швидкість за яку шасі піднімуться/сховаються
                 //Люба характеристика де 10f-затичка.
 
