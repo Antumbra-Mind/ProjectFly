@@ -1329,13 +1329,29 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
+      propertyPath: maxFOV
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: target
       value: 
       objectReference: {fileID: 125456184}
     - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
+      propertyPath: normalFOV
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: speedVolume
       value: 
       objectReference: {fileID: 907576570}
+    - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
+      propertyPath: effectMaxSpeed
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
+      propertyPath: effectStartSpeed
+      value: 40
+      objectReference: {fileID: 0}
     - target: {fileID: 5035359046453766878, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7068
