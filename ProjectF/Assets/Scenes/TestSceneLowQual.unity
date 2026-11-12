@@ -823,7 +823,7 @@ Transform:
   m_GameObject: {fileID: 1315242856}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -7080.449, y: 7.1012516, z: 789.9675}
+  m_LocalPosition: {x: -7080.449, y: 7.1012516, z: 938}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1330,7 +1330,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: maxFOV
-      value: 50
+      value: 55
       objectReference: {fileID: 0}
     - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: target
@@ -1338,7 +1338,7 @@ PrefabInstance:
       objectReference: {fileID: 125456184}
     - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: normalFOV
-      value: 30
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 3565128659565298817, guid: 963a42d6a82eb5142bc2d259ca65b131, type: 3}
       propertyPath: speedVolume
