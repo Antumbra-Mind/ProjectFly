@@ -13,7 +13,7 @@ public class AircraftInput : MonoBehaviour
     private float yaw;
     private float throttle;
     private float airbrake;
-    private float landgear;
+    private bool landgear;
     private float taxi;
     private bool brake;
     private bool firegun;
@@ -29,7 +29,7 @@ public class AircraftInput : MonoBehaviour
     public float Yaw => yaw;
     public float Throttle => throttle; 
     public float Airbrake => airbrake;
-    public float Landgear => landgear;
+    public bool Landgear => landgear;
     public float Taxi => taxi;
     public bool Brake => brake;
     public bool FireGun => firegun;
@@ -59,8 +59,10 @@ public class AircraftInput : MonoBehaviour
         inputAction.Flight.Throttle.canceled += OnThrottle;
 
         inputAction.Flight.Airbrake.performed += OnAirBrake;
+        inputAction.Flight.Airbrake.canceled += OnAirBrake;
 
         inputAction.Flight.LandingGear.performed += OnLandGear;
+        inputAction.Flight.LandingGear.canceled += OnLandGear;
 
         inputAction.Ground.Taxi.performed += OnTaxi;
         inputAction.Ground.Taxi.canceled += OnTaxi;
@@ -108,11 +110,12 @@ public class AircraftInput : MonoBehaviour
     private void OnAirBrake(InputAction.CallbackContext context)
     {
         Debug.Log("Airbrake On!");
+        airbrake = context.ReadValue<float>();
     }
 
     private void OnLandGear(InputAction.CallbackContext context)
     {
-        Debug.Log("LandGear On!");
+        landgear = context.ReadValueAsButton();
     }
 
     private void OnTaxi(InputAction.CallbackContext context)

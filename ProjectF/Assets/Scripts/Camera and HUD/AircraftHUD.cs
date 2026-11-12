@@ -7,18 +7,26 @@ using UnityEngine.UI;
 public class AircraftHUD : MonoBehaviour
 {
     public AircraftControler controler;
+    public Rigidbody rigitbody;
     public AircraftInput input;
+    public AirbrakeController controller;
     public Transform GuffuAhPlane;
     public Slider slide;
     public Image FillSlider;
     public TMP_Text DryForce;
     public TMP_Text Afterburner;
     public TMP_Text Altitude;
+    public TMP_Text Speed;
+    public Image AirbrakeImage;
+    public Image BrakeImage;
+    public Image GearImage;
     public GameObject HUDcontent;
     public bool previousHideHUD;
 
     private void Awake()
     {
+        controller = GetComponent<AirbrakeController>();
+        rigitbody = GuffuAhPlane.GetComponent<Rigidbody>();
         if (GuffuAhPlane != null)
         input = GuffuAhPlane.GetComponent<AircraftInput>();
         if (HUDcontent == null) return;
@@ -32,6 +40,10 @@ public class AircraftHUD : MonoBehaviour
         UpdateThrottleSlider();
         UpdateThrottleText();
         UpdateAltitudeText();
+        UpdateSpeedText();
+        UpdateAirbrakeImage();
+        UpdateGearImage();
+        UpdateBrakeImage();
     }
     public void UpdateThrottleSlider()
     {
@@ -66,6 +78,52 @@ public class AircraftHUD : MonoBehaviour
     {
         float altitude = GuffuAhPlane.transform.position.y;
         Altitude.text = $"ALT.:{altitude:F0} M.";
+    }
+
+    public void UpdateSpeedText()
+    {
+        float speed = rigitbody.linearVelocity.magnitude * 3.6f;
+        Speed.text = $"SPD.:{speed:F0} Km/h.";
+    }
+
+    public void UpdateAirbrakeImage()
+    {
+        float Airbrake = input.Airbrake;
+        if (Airbrake == 0)
+        {
+            AirbrakeImage.color = Color.red;
+        }
+        else if (Airbrake == 1)
+        {
+            AirbrakeImage.color = Color.green;
+        }
+    }
+
+    public void UpdateBrakeImage()
+    {
+        bool Brake = input.Brake;
+        if (Brake == true)
+        {
+            BrakeImage.color = Color.green;
+        }
+        else
+        {
+            BrakeImage.color = Color.red;
+        }
+
+    }
+
+    public void UpdateGearImage()
+    {
+        bool Gear = input.Landgear;
+        if (Gear == true)
+        {
+            GearImage.color = Color.green;
+        }
+        else
+        {
+            GearImage.color = Color.red;
+        }
     }
     
     public void UpdaterHUDVisible()
