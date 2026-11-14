@@ -28,12 +28,15 @@ public class AircraftStats : MonoBehaviour
     public float AirDensity = 1.225f;
     public float OswaldEfficiency;
     public AnimationCurve LiftCoefficientCurve;
+    public float HigtAOADraft = 0.3f;
+    public float ReverseFlowDrag = 1.5f;
     public float KpPitch;
     public float KpRoll;
     public float KpYaw;
     public float KdPitch;
     public float KdRoll;
     public float KdYaw;
+
 
     private void Awake()
     {

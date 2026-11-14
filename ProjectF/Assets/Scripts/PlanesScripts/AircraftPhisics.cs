@@ -1,5 +1,6 @@
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class AircraftPhisics : MonoBehaviour
 {
@@ -37,6 +38,7 @@ public class AircraftPhisics : MonoBehaviour
         float airbrakepower = stats.AirBrakePower;
         float oswaldEF = stats.OswaldEfficiency;
 
+
         if (thotle <= 100f)
         {
             //Суха тяга
@@ -67,9 +69,18 @@ public class AircraftPhisics : MonoBehaviour
             float CL = stats.LiftCoefficientCurve.Evaluate(AOA);
             float CoefInductiveDrag = math.square(CL) / (Mathf.PI * oswaldEF * AR);
 
-            Debug.Log($"AOA: {AOA} | FS: {forwardSpeed} | Speed: {speed}");
-            Debug.Log($"Angle:{Vector3.Angle(transform.forward, rigidbody.linearVelocity.normalized)}");
+            float sideSpeed = Vector3.Dot(rigidbody.linearVelocity, transform.right);
             //Опір повітрю
+            float angle = Vector3.Angle(transform.forward, rigidbody.linearVelocity.normalized);
+
+            float hAOADProgress = Mathf.InverseLerp(30f, 90f, angle);
+            float reverseFProgress = Mathf.InverseLerp(90f, 180f, angle);
+
+            float hAOADraft = math.lerp(0,stats.HigtAOADraft , hAOADProgress);
+            float reverseFDraft = math.lerp(0,stats.ReverseFlowDrag, reverseFProgress);
+
+            baseDc += hAOADraft + reverseFDraft;
+
             float DinamicPressure = 0.5f * airD * speed * speed;
             if (airbrake > 0.5f) {
                 baseDc += airbrakepower;
@@ -91,10 +102,6 @@ public class AircraftPhisics : MonoBehaviour
                 Vector3 LiftForce = liftDirection * liftForceMag;
                 rigidbody.AddForceAtPosition(LiftForce, LiftPoint.position);
             }
-            Debug.Log(rigidbody.centerOfMass);
-            Debug.Log(transform.InverseTransformPoint(LiftPoint.position));
-
-
 
         }
 
