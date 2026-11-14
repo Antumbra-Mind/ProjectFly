@@ -1484,6 +1484,14 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7556476386481610391, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: HigtAOADraft
+      value: 0.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556476386481610391, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: ReverseFlowDrag
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7556476386481610391, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: LiftCoefficientCurve.m_PreInfinity
       value: 2
       objectReference: {fileID: 0}
