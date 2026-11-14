@@ -10,6 +10,7 @@ public class AircraftPhisics : MonoBehaviour
     private float debugTimer;
     public Transform LiftPoint;
     private float AR;
+    public bool IsStalling = false;
     private void Start()
     {
         rigidbody.mass = stats.PlaneMass;
@@ -57,7 +58,7 @@ public class AircraftPhisics : MonoBehaviour
         //Частина коду для застування опора повітря. 
         Vector3 velocity = rigidbody.linearVelocity;
         float speed = velocity.magnitude;
-        if(speed > 0.01f)
+        if (speed > 0.01f)
         {
 
             //Частина коду Для АОА
@@ -76,13 +77,14 @@ public class AircraftPhisics : MonoBehaviour
             float hAOADProgress = Mathf.InverseLerp(30f, 90f, angle);
             float reverseFProgress = Mathf.InverseLerp(90f, 180f, angle);
 
-            float hAOADraft = math.lerp(0,stats.HigtAOADraft , hAOADProgress);
-            float reverseFDraft = math.lerp(0,stats.ReverseFlowDrag, reverseFProgress);
+            float hAOADraft = math.lerp(0, stats.HigtAOADraft, hAOADProgress);
+            float reverseFDraft = math.lerp(0, stats.ReverseFlowDrag, reverseFProgress);
 
             baseDc += hAOADraft + reverseFDraft;
 
             float DinamicPressure = 0.5f * airD * speed * speed;
-            if (airbrake > 0.5f) {
+            if (airbrake > 0.5f)
+            {
                 baseDc += airbrakepower;
             }
             float DragCoef = baseDc + CoefInductiveDrag;
@@ -96,19 +98,24 @@ public class AircraftPhisics : MonoBehaviour
             float liftForceMag = DinamicPressure * wingA * CL;
             Vector3 liftDirection = Vector3.Cross(velocity.normalized, transform.right).normalized;
 
-            if(liftDirection.sqrMagnitude > 0.0001f)
+            if (liftDirection.sqrMagnitude > 0.0001f)
             {
                 //і на добивочку множимо і їбашимо в аддфорс
                 Vector3 LiftForce = liftDirection * liftForceMag;
                 rigidbody.AddForceAtPosition(LiftForce, LiftPoint.position);
             }
+            if (AOA > 18f || AOA < -18f)
+            {
+                IsStalling = true;
+            }
+            else if (AOA < 13f && AOA > -13f)
+            {
+                IsStalling = false;
+            }
+
 
         }
 
-
-
-        
-
-     }
+    }
 
 }

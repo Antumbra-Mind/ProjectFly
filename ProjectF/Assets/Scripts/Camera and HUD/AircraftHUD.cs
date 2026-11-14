@@ -10,6 +10,7 @@ public class AircraftHUD : MonoBehaviour
     public Rigidbody rigitbody;
     public AircraftInput input;
     public AirbrakeController controller;
+    public AircraftPhisics phisics;
     public Transform GuffuAhPlane;
     public Slider slide;
     public Image FillSlider;
@@ -17,14 +18,17 @@ public class AircraftHUD : MonoBehaviour
     public TMP_Text Afterburner;
     public TMP_Text Altitude;
     public TMP_Text Speed;
+    public TMP_Text Stall;
     public Image AirbrakeImage;
     public Image BrakeImage;
     public Image GearImage;
     public GameObject HUDcontent;
     public bool previousHideHUD;
+    
 
     private void Awake()
     {
+        phisics = GuffuAhPlane.GetComponent<AircraftPhisics>();
         controller = GetComponent<AirbrakeController>();
         rigitbody = GuffuAhPlane.GetComponent<Rigidbody>();
         if (GuffuAhPlane != null)
@@ -44,6 +48,7 @@ public class AircraftHUD : MonoBehaviour
         UpdateAirbrakeImage();
         UpdateGearImage();
         UpdateBrakeImage();
+        UpdateStallText();
     }
     public void UpdateThrottleSlider()
     {
@@ -84,6 +89,13 @@ public class AircraftHUD : MonoBehaviour
     {
         float speed = rigitbody.linearVelocity.magnitude * 3.6f;
         Speed.text = $"SPD.:{speed:F0} Km/h.";
+    }
+
+    public void UpdateStallText()
+    {
+        Stall.enabled = phisics.IsStalling;
+
+
     }
 
     public void UpdateAirbrakeImage()
@@ -135,4 +147,6 @@ public class AircraftHUD : MonoBehaviour
         HUDcontent.SetActive(!HUDnow);
         previousHideHUD = HUDnow;
     }
+    
+
 }

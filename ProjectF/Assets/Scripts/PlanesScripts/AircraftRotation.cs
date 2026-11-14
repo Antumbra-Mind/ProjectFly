@@ -8,6 +8,7 @@ public class AircraftRotation : MonoBehaviour
     private Rigidbody rigitbody;
     private AircraftStats stats;
     private AircraftControler controler;
+    private AircraftPhisics phisics;
     private float targetPitch;
     private float targetRoll;
     private float targetYaw;
@@ -16,9 +17,11 @@ public class AircraftRotation : MonoBehaviour
     private float angle;
     private float T;
     private float controlEffectiv = 1f;
+    private float stallEffect = 0.6f;
 
     private void Awake()
     {
+        phisics = GetComponent<AircraftPhisics>();
         rigitbody = GetComponent<Rigidbody>();
         stats = GetComponent<AircraftStats>();
         controler = GetComponent<AircraftControler>();
@@ -58,6 +61,10 @@ public class AircraftRotation : MonoBehaviour
         {
             T = Mathf.InverseLerp(90f, 180f, angle);
             controlEffectiv = math.lerp(0.4f, 0.05f, T);
+        }
+        if(phisics.IsStalling == true)
+        {
+            controlEffectiv *= stallEffect;
         }
         // Бажані кутові швидкості в локальних координатах
         Vector3 _AllTarget = new Vector3(targetPitch, targetYaw, -targetRoll);
