@@ -2296,6 +2296,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 275435597}
     - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
+      propertyPath: Stall
+      value: 
+      objectReference: {fileID: 958604423}
+    - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
       propertyPath: slide
       value: 
       objectReference: {fileID: 1771975326}
