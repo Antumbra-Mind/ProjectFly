@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3893691739589859323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 525329476985209752}
+  m_Layer: 0
+  m_Name: Lift Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &525329476985209752
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3893691739589859323}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.01, y: 0, z: 2.97}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4964978763609589433}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &4858711767854063954
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66,7 +97,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 525329476985209752}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
       insertIndex: -1
@@ -99,6 +133,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 6727030346718779407}
   m_SourcePrefab: {fileID: 100100000, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
+--- !u!4 &4964978763609589433 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
+  m_PrefabInstance: {fileID: 4858711767854063954}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &5741233339692391427 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 70d2e31b52820804c9d7ad0b978e6b39, type: 3}
@@ -132,6 +171,7 @@ MonoBehaviour:
   Roll: 0
   Yaw: 0
   throttle: 0
+  AirBrake: 0
   throttlespeed: 50
 --- !u!114 &8899064620981056496
 MonoBehaviour:
@@ -198,13 +238,30 @@ MonoBehaviour:
   PlaneMaxSpeed: 0
   PlaneEnginePower: 0
   Afterburner: 0
-  AirRessistanse: 0
   AirBrakePower: 0
   GroundBrakePower: 0
-  YawSpeed: 0
-  PitchSpeed: 0
-  RollSpeed: 0
+  _MaxYawAngVel: 0
+  _MaxPitchUpAngVel: 0
+  _MaxPitchDownAngVel: 0
+  _MaxRollAngVel: 0
   LandGearTimeReveal: 0
+  BaseDragCoefficient: 0.02
+  WingArea: 0
+  WingSpan: 0
+  AirDensity: 1.225
+  OswaldEfficiency: 0
+  LiftCoefficientCurve:
+    serializedVersion: 2
+    m_Curve: []
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  KpPitch: 0
+  KpRoll: 0
+  KpYaw: 0
+  KdPitch: 0
+  KdRoll: 0
+  KdYaw: 0
 --- !u!114 &2005605613130860689
 MonoBehaviour:
   m_ObjectHideFlags: 0

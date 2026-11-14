@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &92868695 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 525329476985209752, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+  m_PrefabInstance: {fileID: 3855808907205205676}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &125456184 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4964978763609589433, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
@@ -1418,6 +1423,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 510810029873855973, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: LiftPoint
+      value: 
+      objectReference: {fileID: 92868695}
+    - target: {fileID: 525329476985209752, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 525329476985209752, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 4964978763609589433, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_LocalPosition.x
       value: -7068
@@ -1461,6 +1478,10 @@ PrefabInstance:
     - target: {fileID: 5741233339692391427, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_Name
       value: GuffyAhPlane
+      objectReference: {fileID: 0}
+    - target: {fileID: 6166248075825409143, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: m_ImplicitCom
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7556476386481610391, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: LiftCoefficientCurve.m_PreInfinity

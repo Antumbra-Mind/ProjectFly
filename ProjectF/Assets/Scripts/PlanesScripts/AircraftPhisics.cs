@@ -7,6 +7,7 @@ public class AircraftPhisics : MonoBehaviour
     private AircraftControler controler;
     private AircraftStats stats;
     private float debugTimer;
+    public Transform LiftPoint;
     private float AR;
     private void Start()
     {
@@ -66,6 +67,8 @@ public class AircraftPhisics : MonoBehaviour
             float CL = stats.LiftCoefficientCurve.Evaluate(AOA);
             float CoefInductiveDrag = math.square(CL) / (Mathf.PI * oswaldEF * AR);
 
+            Debug.Log($"AOA: {AOA} | FS: {forwardSpeed} | Speed: {speed}");
+            Debug.Log($"Angle:{Vector3.Angle(transform.forward, rigidbody.linearVelocity.normalized)}");
             //Опір повітрю
             float DinamicPressure = 0.5f * airD * speed * speed;
             if (airbrake > 0.5f) {
@@ -86,9 +89,10 @@ public class AircraftPhisics : MonoBehaviour
             {
                 //і на добивочку множимо і їбашимо в аддфорс
                 Vector3 LiftForce = liftDirection * liftForceMag;
-                rigidbody.AddForce(LiftForce);
+                rigidbody.AddForceAtPosition(LiftForce, LiftPoint.position);
             }
-
+            Debug.Log(rigidbody.centerOfMass);
+            Debug.Log(transform.InverseTransformPoint(LiftPoint.position));
 
 
 
