@@ -42,6 +42,9 @@ Material:
     - _NadirBlend: 1
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _StarHeight: 150
+    - _StarIntensity: 0.5
+    - _StarPower: 20
     - _ZenithBlend: 1
     m_Colors:
     - _GroundColor: {r: 0.4811321, g: 0.07943214, b: 0.07943214, a: 1}
