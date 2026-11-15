@@ -15,6 +15,7 @@ public class AircraftControler : MonoBehaviour
     public float Yaw;
     public float throttle = 0f;
     public float AirBrake;
+    public float LangGear;
     [SerializeField] private float throttlespeed = 50f;
 
     private void Awake()

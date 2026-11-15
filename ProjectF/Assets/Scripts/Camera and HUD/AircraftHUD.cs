@@ -11,6 +11,7 @@ public class AircraftHUD : MonoBehaviour
     public AircraftInput input;
     public AirbrakeController controller;
     public AircraftPhisics phisics;
+    public AircraftGroundMovement Gmove;
     public Transform GuffuAhPlane;
     public Slider slide;
     public Image FillSlider;
@@ -31,6 +32,7 @@ public class AircraftHUD : MonoBehaviour
         phisics = GuffuAhPlane.GetComponent<AircraftPhisics>();
         controller = GetComponent<AirbrakeController>();
         rigitbody = GuffuAhPlane.GetComponent<Rigidbody>();
+        Gmove = GuffuAhPlane.GetComponent<AircraftGroundMovement>();
         if (GuffuAhPlane != null)
         input = GuffuAhPlane.GetComponent<AircraftInput>();
         if (HUDcontent == null) return;
@@ -127,8 +129,11 @@ public class AircraftHUD : MonoBehaviour
 
     public void UpdateGearImage()
     {
-        bool Gear = input.Landgear;
-        if (Gear == true)
+        if (Gmove.IsTransitioning)
+        {
+            GearImage.color = Color.yellow;
+        }
+        else if (Gmove.CurrentState == AircraftGroundMovement.AircraftState.Taxi)
         {
             GearImage.color = Color.green;
         }
