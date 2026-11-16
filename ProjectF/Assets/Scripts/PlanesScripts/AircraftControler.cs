@@ -39,6 +39,13 @@ public class AircraftControler : MonoBehaviour
             throttle = math.clamp(throttle - throttlespeed * Time.deltaTime, 0f, 110f);
         }
 
+        if (rigController != null)
+        {
+            float normalizedThrottle = Mathf.Clamp01(throttle / 100f);
+            float normalizedAfterburner = Mathf.Clamp01((throttle - 100f) / 10f);
+            rigController.SetEngineState(normalizedThrottle, normalizedAfterburner);
+        }
+
         AirBrake = aircraftInput.Airbrake;
     }
 }

@@ -32,6 +32,7 @@ public class GripenFlightHUD : MonoBehaviour
 
     [Header("Dynamic Center Reticle")]
     [SerializeField] private RectTransform dynamicReticle;
+    [SerializeField] private Vector2 reticleBaseOffset = new Vector2(0f, 95f);              // Базове зміщення вперед/вгору від центру
     [SerializeField] private float maxReticleOffset = 45f;
     [SerializeField] private float reticleSmoothSpeed = 10f;
 
@@ -50,6 +51,8 @@ public class GripenFlightHUD : MonoBehaviour
     [SerializeField] private Color inactiveTextColor = new Color(0.6f, 0.88f, 0.92f, 0.55f);
 
     private bool previousHideHUD;
+    private bool isAirbrakeDeployed;
+    private bool wasAirbrakeInputPressed;
 
     private void Awake()
     {
@@ -79,8 +82,8 @@ public class GripenFlightHUD : MonoBehaviour
 
         UpdateThrottle();
         UpdateFlightTelemetry();
-        //UpdateSystemIndicators();
-        //UpdateStallWarning();
+        UpdateSystemIndicators();
+        UpdateStallWarning();
         UpdateDynamicReticle();
     }
 
@@ -137,38 +140,44 @@ public class GripenFlightHUD : MonoBehaviour
         }
     }
 
-    //private void UpdateSystemIndicators()
-    //{
-    //    // 1. Шасі (GEAR)
-    //    if (gMove != null && gearBg != null)
-    //    {
-    //        if (gMove.IsTransitioning)
-    //        {
-    //            SetIndicatorVisual(gearBg, gearLabel, true, activeAmberColor); // Жовтий під час випуску/прибирання
-    //        }
-    //        else if (gMove.CurrentState == AircraftGroundMovement.AircraftState.Taxi)
-    //        {
-    //            SetIndicatorVisual(gearBg, gearLabel, true, activeCyanColor);  // Бірюзовий коли випущені
-    //        }
-    //        else
-    //        {
-    //            SetIndicatorVisual(gearBg, gearLabel, false, inactiveBgColor); // Темний коли прибрані в польоті
-    //        }
-    //    }
+    private void UpdateSystemIndicators()
+    {
+        // 1. Шасі (GEAR)
+        if (gMove != null && gearBg != null)
+        {
+            if (gMove.IsTransitioning)
+            {
+                SetIndicatorVisual(gearBg, gearLabel, true, activeAmberColor); // Жовтий під час випуску/прибирання
+            }
+            else if (gMove.CurrentState == AircraftGroundMovement.AircraftState.Taxi)
+            {
+                SetIndicatorVisual(gearBg, gearLabel, true, activeCyanColor);  // Бірюзовий коли випущені
+            }
+            else
+            {
+                SetIndicatorVisual(gearBg, gearLabel, false, inactiveBgColor); // Темний коли прибрані в польоті
+            }
+        }
 
-    //    // 2. Повітряне гальмо (AIR BRAKE)
-    //    if (input != null && airbrakeBg != null)
-    //    {
-    //        bool isAirbrakeOn = input.Airbrake > 0.5f;
-    //        SetIndicatorVisual(airbrakeBg, airbrakeLabel, isAirbrakeOn, activeAmberColor);
-    //    }
+        // 2. Повітряне гальмо (AIR BRAKE) — зберігає стан перемикання
+        if (input != null && airbrakeBg != null)
+        {
+            bool isPressedNow = input.Airbrake > 0.5f;
+            if (isPressedNow && !wasAirbrakeInputPressed)
+            {
+                isAirbrakeDeployed = !isAirbrakeDeployed;
+            }
+            wasAirbrakeInputPressed = isPressedNow;
 
-    //    // 3. Колісне гальмо (BRAKE)
-    //    if (input != null && brakeBg != null)
-    //    {
-    //        SetIndicatorVisual(brakeBg, brakeLabel, input.Brake, activeAmberColor);
-    //    }
-    //}
+            SetIndicatorVisual(airbrakeBg, airbrakeLabel, isAirbrakeDeployed, activeAmberColor);
+        }
+
+        // 3. Колісне гальмо (BRAKE)
+        if (input != null && brakeBg != null)
+        {
+            SetIndicatorVisual(brakeBg, brakeLabel, input.Brake, activeAmberColor);
+        }
+    }
 
     private void SetIndicatorVisual(Image bg, TMP_Text label, bool isActive, Color activeColor)
     {
@@ -177,18 +186,18 @@ public class GripenFlightHUD : MonoBehaviour
             label.color = isActive ? Color.white : inactiveTextColor;
     }
 
-    //private void UpdateStallWarning()
-    //{
-    //    if (stallWarningGroup == null || phisics == null) return;
+    private void UpdateStallWarning()
+    {
+        if (stallWarningGroup == null || phisics == null) return;
 
-    //    if (!phisics.IsStalling)
-    //    {
-    //        stallWarningGroup.alpha = 0f;
-    //        return;
-    //    }
+        if (!phisics.IsStalling)
+        {
+            stallWarningGroup.alpha = 0f;
+            return;
+        }
 
-    //    stallWarningGroup.alpha = Mathf.Lerp(0.55f, 1f, (Mathf.Sin(Time.time * stallPulseSpeed) + 1f) * 0.5f);
-    //}
+        stallWarningGroup.alpha = Mathf.Lerp(0.55f, 1f, (Mathf.Sin(Time.time * stallPulseSpeed) + 1f) * 0.5f);
+    }
 
     private void UpdateDynamicReticle()
     {
@@ -198,13 +207,15 @@ public class GripenFlightHUD : MonoBehaviour
         float rollAngle = guffuAhPlane.eulerAngles.z;
         dynamicReticle.localRotation = Quaternion.Euler(0f, 0f, rollAngle);
 
-        // Зміщення прицілу в бік кутової швидкості розвороту/тангажу
+        // Зміщення прицілу в бік кутової швидкості розвороту/тангажу + базовий зсув вперед (вгору)
         if (planeRigidbody != null)
         {
             Vector3 localAngVel = guffuAhPlane.InverseTransformDirection(planeRigidbody.angularVelocity);
             Vector2 turnOffset = new Vector2(localAngVel.y, -localAngVel.x) * 25f;
             turnOffset = Vector2.ClampMagnitude(turnOffset, maxReticleOffset);
-            dynamicReticle.anchoredPosition = Vector2.Lerp(dynamicReticle.anchoredPosition, turnOffset, Time.deltaTime * reticleSmoothSpeed);
+
+            Vector2 targetPos = reticleBaseOffset + turnOffset;
+            dynamicReticle.anchoredPosition = Vector2.Lerp(dynamicReticle.anchoredPosition, targetPos, Time.deltaTime * reticleSmoothSpeed);
         }
     }
 }

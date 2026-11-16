@@ -38,9 +38,9 @@ ModelImporter:
     clipAnimations:
     - serializedVersion: 16
       name: Gear_Retract
-      takeName: Scene
+      takeName: 'Gripen_Rig|Gear_Retract '
       internalID: -623603649343465320
-      firstFrame: 1
+      firstFrame: 0
       lastFrame: 120
       wrapMode: 0
       orientationOffsetY: 0

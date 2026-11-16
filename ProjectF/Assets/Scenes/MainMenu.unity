@@ -5895,7 +5895,7 @@ MonoBehaviour:
   openOffsetX: -290
   animSpeed: 8
   cameraTransform: {fileID: 974531922}
-  cameraOpenLocalOffset: {x: 0.05, y: 0, z: 0.1}
+  cameraOpenLocalOffset: {x: 0.05, y: 0, z: -0.1}
 --- !u!1 &1047016841
 GameObject:
   m_ObjectHideFlags: 19
@@ -5925,6 +5925,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d0d71238b38a4a38b35b955fbf5c019, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::nTools.PrefabPainter.PrefabPainterSceneSettings
+  parentForPrefabs: {fileID: 0}
 --- !u!4 &1047016843
 Transform:
   m_ObjectHideFlags: 19
@@ -6995,7 +6996,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 948.96326
+      value: 949.57
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       propertyPath: m_LocalRotation.w
@@ -7007,15 +7008,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0.7071068
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0.7071068
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 90
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y

@@ -2,14 +2,8 @@ using UnityEngine;
 
 public class GripenWheelSync : MonoBehaviour
 {
-    [Header("Налаштування руління та гальм")]
-    public float maxSteerAngle = 25f;
-    public float maxBrakeTorque = 3000f;
-
-    [HideInInspector] public float steerInput;
-    [HideInInspector] public bool isBraking;
-
     private GripenRigController _rigController;
+    private float _currentVisualSteerAngle;
 
     private void Awake()
     {
@@ -37,6 +31,7 @@ public class GripenWheelSync : MonoBehaviour
             if (strut.strutAmoBone != null)
             {
                 strut.initialAmoLocalPos = strut.strutAmoBone.localPosition;
+                strut.initialAmoLocalRot = strut.strutAmoBone.localRotation;
             }
             if (strut.wheelSpinBone != null)
             {
@@ -47,47 +42,19 @@ public class GripenWheelSync : MonoBehaviour
         HandleGearStateChanged();
     }
 
-    private void FixedUpdate()
+    private void LateUpdate()
     {
         if (_rigController == null || _rigController._gearRetracted || _rigController.struts == null) return;
-
-        float currentBrake = isBraking ? maxBrakeTorque : 0f;
-        // Мікро-імпульс 0.0001f не дає PhysX "приспати" WheelCollider, коли гальма відпущені
-        float wakeTorque = isBraking ? 0f : 0.0001f;
 
         for (int i = 0; i < _rigController.struts.Length; i++)
         {
             var strut = _rigController.struts[i];
             if (strut.collider == null || !strut.collider.enabled) continue;
 
-            // 0-й елемент масиву struts — передня стійка (керується по Yaw)
-            if (i == 0)
-            {
-                strut.collider.steerAngle = steerInput * maxSteerAngle;
-                strut.collider.brakeTorque = 0f;
-                strut.collider.motorTorque = 0.0001f;
-            }
-            else
-            {
-                // 1-й та 2-й елементи — основні задні стійки (гальмування + пробудження)
-                strut.collider.brakeTorque = currentBrake;
-                strut.collider.motorTorque = wakeTorque;
-            }
-        }
-    }
-
-    private void LateUpdate()
-    {
-        if (_rigController == null || _rigController._gearRetracted || _rigController.struts == null) return;
-
-        foreach (var strut in _rigController.struts)
-        {
-            if (strut.collider == null || !strut.collider.enabled) continue;
-
             // 1. Отримуємо реальну позицію колеса з фізики WheelCollider
             strut.collider.GetWorldPose(out Vector3 wheelWorldPos, out _);
 
-            // 2. АМОРТИЗАТОР: рахуємо відхилення від номінального просідання (Target Position)
+            // 2. АМОРТИЗАТОР
             if (strut.strutAmoBone != null)
             {
                 Vector3 offsetFromColliderOrigin = wheelWorldPos - strut.collider.transform.position;
@@ -108,9 +75,26 @@ public class GripenWheelSync : MonoBehaviour
                     Vector3 localDelta = strut.strutAmoBone.parent.InverseTransformVector(worldDelta);
                     strut.strutAmoBone.localPosition = strut.initialAmoLocalPos + localDelta;
                 }
+
+                // Плавний поворот лише для передньої стійки (i == 0)
+                if (i == 0 && _rigController.frontSteerLocalAxis.sqrMagnitude > 0.0001f)
+                {
+                    float targetSteer = strut.collider.steerAngle
+                                      * _rigController.visualSteerMultiplier
+                                      * (_rigController.invertFrontSteer ? -1f : 1f);
+
+                    _currentVisualSteerAngle = Mathf.Lerp(
+                        _currentVisualSteerAngle,
+                        targetSteer,
+                        Time.deltaTime * _rigController.frontSteerSmoothSpeed
+                    );
+
+                    Quaternion steerDelta = Quaternion.AngleAxis(_currentVisualSteerAngle, _rigController.frontSteerLocalAxis.normalized);
+                    strut.strutAmoBone.localRotation = strut.initialAmoLocalRot * steerDelta;
+                }
             }
 
-            // 3. ОБЕРТАННЯ КОЛЕСА: накопичуємо кут, щоб Animator не скидав обертання щокадру
+            // 3. ОБЕРТАННЯ КОЛЕСА
             if (strut.wheelSpinBone != null)
             {
                 float degreesPerSecond = strut.collider.rpm * 6f * (strut.invertSpin ? -1f : 1f);

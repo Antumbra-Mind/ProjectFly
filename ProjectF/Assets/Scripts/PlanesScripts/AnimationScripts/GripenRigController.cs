@@ -19,7 +19,9 @@ public class GripenRigController : MonoBehaviour
         public Transform wheelSpinBone;
         public Vector3 spinLocalAxis = Vector3.right;
         public bool invertSpin = false;
+
         [HideInInspector] public Vector3 initialAmoLocalPos;
+        [HideInInspector] public Quaternion initialAmoLocalRot;
         [HideInInspector] public float currentSpinAngle;
         [HideInInspector] public Quaternion initialWheelLocalRot;
     }
@@ -56,7 +58,9 @@ public class GripenRigController : MonoBehaviour
     public Transform leftSlat;
     public Transform rightSlat;
     public float maxSlatAngle = 15f;
-    public Axis slatAxis = Axis.X;
+    [Tooltip("Локальний вектор осі обертання (наприклад, (1, 1, 0) або (0.7, 0.7, 0))")]
+    public Vector3 leftSlatAxis = new Vector3(1f, 1f, 0f);
+    public Vector3 rightSlatAxis = new Vector3(1f, -1f, 0f);
     public bool invertLeftSlat = false;
     public bool invertRightSlat = false;
 
@@ -81,6 +85,13 @@ public class GripenRigController : MonoBehaviour
     [Header("Стійки шасі (Передня, Ліва, Права)")]
     public GearStrut[] struts = new GearStrut[3];
 
+    [Header("Поворот передньої стійки (Taxi)")]
+    public Vector3 frontSteerLocalAxis = Vector3.up;
+    [Range(0.1f, 1f)]
+    public float visualSteerMultiplier = 0.45f;
+    public float frontSteerSmoothSpeed = 8f;
+    public bool invertFrontSteer = false;
+
     [Header("Шасі (Animator)")]
     public Animator gripenAnimator;
     public string gearAnimState = "Gear_Retract";
@@ -90,8 +101,8 @@ public class GripenRigController : MonoBehaviour
     [Header("Загальні налаштування")]
     public float rigSmoothSpeed = 10f;
 
-    private InputAction _pitchAct, _rollAct, _yawAct, _throttleAct, _airbrakeAct, _gearAct;
-    private float _curPitch, _curRoll, _curYaw, _curNozzleOpen, _curAirbrake;
+    private InputAction _pitchAct, _rollAct, _yawAct, _airbrakeAct, _gearAct;
+    private float _curPitch, _curRoll, _curYaw, _curNozzleOpen = 1f, _curAirbrake;
     private bool _airbrakeOpen;
     [HideInInspector]
     public bool _gearRetracted;
@@ -99,7 +110,6 @@ public class GripenRigController : MonoBehaviour
 
     private float _extThrottle;
     private float _extAfterburner;
-    private bool _useExternalEngineState;
 
     private Quaternion _lCanardBase, _rCanardBase;
     private Quaternion _inLElevonBase, _inRElevonBase, _outLElevonBase, _outRElevonBase;
@@ -141,7 +151,6 @@ public class GripenRigController : MonoBehaviour
             _pitchAct = flightMap.FindAction("Pitch");
             _rollAct = flightMap.FindAction("Roll");
             _yawAct = flightMap.FindAction("Yaw");
-            _throttleAct = flightMap.FindAction("Throttle");
             _airbrakeAct = flightMap.FindAction("Airbrake");
             _gearAct = flightMap.FindAction("LandingGear");
         }
@@ -169,9 +178,10 @@ public class GripenRigController : MonoBehaviour
         _gearRetracted = !_gearRetracted;
         if (gripenAnimator)
         {
+            gripenAnimator.speed = 1f;
             float dir = _gearRetracted ? 1f : -1f;
             gripenAnimator.SetFloat("GearSpeed", dir * gearAnimSpeed);
-            gripenAnimator.Play(gearAnimState, 0, _gearRetracted ? 0f : 1f);
+            gripenAnimator.Play(gearAnimState, 0, _gearRetracted ? 0.01f : 0.99f);
         }
         OnGearStateChanged?.Invoke();
     }
@@ -183,7 +193,6 @@ public class GripenRigController : MonoBehaviour
     {
         _extThrottle = Mathf.Clamp01(throttle01);
         _extAfterburner = Mathf.Clamp01(afterburner01);
-        _useExternalEngineState = true;
     }
 
     private void Update()
@@ -194,17 +203,9 @@ public class GripenRigController : MonoBehaviour
         float targetRoll = _rollAct != null ? _rollAct.ReadValue<float>() : 0f;
         float targetYaw = _yawAct != null ? _yawAct.ReadValue<float>() : 0f;
 
-        // Розрахунок цільового розкриття сопла (0 = закрите/звужене, 1 = повністю відкрите)
-        float targetNozzleOpen;
-        if (_useExternalEngineState)
-        {
-            float milFactor = 1f - _extThrottle;
-            targetNozzleOpen = Mathf.Max(milFactor, _extAfterburner);
-        }
-        else
-        {
-            targetNozzleOpen = _throttleAct != null ? Mathf.Clamp01(_throttleAct.ReadValue<float>()) : 0f;
-        }
+        // 0% тяги -> відкрите (1), 100% тяги -> звужене (0), форсаж -> знову відкривається до (1)
+        float milFactor = 1f - _extThrottle;
+        float targetNozzleOpen = Mathf.Max(milFactor, _extAfterburner);
 
         _curPitch = Mathf.Lerp(_curPitch, targetPitch, dt);
         _curRoll = Mathf.Lerp(_curRoll, targetRoll, dt);
@@ -229,10 +230,18 @@ public class GripenRigController : MonoBehaviour
         // 3. Rudder (кіль - рискання)
         if (rudder) rudder.localRotation = _rudderBase * GetRigRotation(_curYaw * maxRudderAngle, rudderAxis, invertRudder);
 
-        // 4. Slats (автоматичне відхилення на позитивному тангажі / великих кутах атаки)
+        // 4. Slats (обертання навколо довільного вектора осі шарніра)
         float slatAngle = Mathf.Clamp01(_curPitch) * maxSlatAngle;
-        if (leftSlat) leftSlat.localRotation = _lSlatBase * GetRigRotation(slatAngle, slatAxis, invertLeftSlat);
-        if (rightSlat) rightSlat.localRotation = _rSlatBase * GetRigRotation(slatAngle, slatAxis, invertRightSlat);
+        if (leftSlat && leftSlatAxis.sqrMagnitude > 0.0001f)
+        {
+            float lAngle = invertLeftSlat ? -slatAngle : slatAngle;
+            leftSlat.localRotation = _lSlatBase * Quaternion.AngleAxis(lAngle, leftSlatAxis.normalized);
+        }
+        if (rightSlat && rightSlatAxis.sqrMagnitude > 0.0001f)
+        {
+            float rAngle = invertRightSlat ? -slatAngle : slatAngle;
+            rightSlat.localRotation = _rSlatBase * Quaternion.AngleAxis(rAngle, rightSlatAxis.normalized);
+        }
 
         // 5. Airbrakes (повітряні гальма)
         float brakeAngle = _curAirbrake * maxAirbrakeAngle;

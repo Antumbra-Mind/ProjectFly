@@ -4,6 +4,7 @@ using UnityEngine.UIElements;
 
 public class AircraftPhisics : MonoBehaviour
 {
+
     private Rigidbody rigidbody;
     private AircraftControler controler;
     private AircraftStats stats;
@@ -28,7 +29,7 @@ public class AircraftPhisics : MonoBehaviour
     }
 
     private void FixedUpdate()
-     {
+    {
         //Швидкість. Реалізація сухої тяги+ прискорення, якщо двигун стоїть на 100%+
         float thotle = controler.throttle;
         float planeEng = stats.PlaneEnginePower;
@@ -107,7 +108,9 @@ public class AircraftPhisics : MonoBehaviour
                 Vector3 LiftForce = liftDirection * liftForceMag;
                 rigidbody.AddForceAtPosition(LiftForce, LiftPoint.position);
             }
-            if (!groundMove.IsGrounded) { 
+
+            if (!groundMove.IsGrounded) { }
+
             if (AOA > 18f || AOA < -18f)
             {
                 IsStalling = true;
@@ -116,14 +119,10 @@ public class AircraftPhisics : MonoBehaviour
             {
                 IsStalling = false;
             }
-
-            }
             else
             {
                 IsStalling = false;
             }
         }
-
     }
-
 }
