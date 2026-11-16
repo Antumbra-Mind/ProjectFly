@@ -142,8 +142,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _HighestCloudAltitude: 6381600
-    - _LowestCloudAltitude: 6379600
+    - _HighestCloudAltitude: 6381300
+    - _LowestCloudAltitude: 6379300
     - _MaxStep: 24
     - _MaxStepSize: 250
     - _MediumWindSpeed: 1

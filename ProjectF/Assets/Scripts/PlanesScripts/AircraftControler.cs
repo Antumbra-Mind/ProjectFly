@@ -16,10 +16,12 @@ public class AircraftControler : MonoBehaviour
     public float AirBrake;
     public float LangGear;
     [SerializeField] private float throttlespeed = 50f;
+    GripenRigController rigController;
 
     private void Awake()
     {
         aircraftInput = GetComponent<AircraftInput>();
+        rigController = GetComponent<GripenRigController>();
     }
 
     private void Update()
