@@ -30,6 +30,7 @@ public class AircraftCamera : MonoBehaviour
     private Vector2 lookDelta;
     private Vector3 lookPoint;
     private Vector3 desiredPosition;
+    private Quaternion desiredRotation;
 
     public enum CameraMod
     {
@@ -42,6 +43,15 @@ public class AircraftCamera : MonoBehaviour
     public bool priviousCameraHold;
     public float freeLookYaw;
     public float currentCameraDistance;
+    private Vector3 freeLookPoint;
+    private Quaternion freeLookBasis;
+    [SerializeField] private bool IsTransit;
+    private Vector3 transitstartPos;
+    private Quaternion transitstartRot;
+    private float transitTimer;
+    [SerializeField] private float transitDuration = 0.5f;
+    public float localRotation;
+
     [Header("FOV")]
     public float normalFOV = 60f;
     public float maxFOV = 65f;
@@ -94,7 +104,12 @@ public class AircraftCamera : MonoBehaviour
         {
             if (Ainput.CameraWatchSwitch != previousCameraSwitch) //Перевірка режиму камери
             {
+                transitstartPos = transform.position;
+                transitstartRot = transform.rotation;
+
                 curentCameraMod = (curentCameraMod == CameraMod.Standart) ? CameraMod.FullTraking : CameraMod.Standart;
+                transitTimer = 0f;
+                IsTransit = true;
                 previousCameraSwitch = Ainput.CameraWatchSwitch;
             }
 
@@ -118,25 +133,61 @@ public class AircraftCamera : MonoBehaviour
     private void LateUpdate()
     {
         if (target == null || Ainput == null) return;
-        if (Ainput.CameraHold)
+        if (IsTransit)
         {
-            FreeLookCamera();
-        }
-        else {
+            transitTimer += Time.deltaTime;
+            float t = transitTimer / transitDuration;
+            t = Mathf.Clamp01(t);
+            t = Mathf.SmoothStep(0f, 1f, t);
+            desiredRotation = transform.rotation;
             if (curentCameraMod == CameraMod.Standart)
             {
-                StandartCameraView();
+                Vector3 localLookDirection = new Vector3(-offset.x, lookAtHeight - offset.y, -offset.z);
+                Quaternion localRotation = Quaternion.LookRotation(localLookDirection, Vector3.up);
+                desiredPosition = target.position + target.rotation * offset;
+                desiredRotation = target.rotation * localRotation;
             }
             else if(curentCameraMod == CameraMod.FullTraking)
             {
-                FullCameraView();
+                Vector3 flatForward = Vector3.ProjectOnPlane(target.forward, Vector3.up);
+                if (flatForward.sqrMagnitude > 0.001f)
+                {
+                    flatForward.Normalize();
+                    lastFlatForward = flatForward;
+                }
+                else
+                {
+                    flatForward = lastFlatForward;
+                }
+                Quaternion flatRotation = Quaternion.LookRotation(flatForward, Vector3.up);
+                desiredPosition = target.position + flatRotation * offset;
+                Vector3 lookPoint = target.position + Vector3.up * lookAtHeight;
+                Vector3 lookDirection = lookPoint - desiredPosition;
+                if (lookDirection.sqrMagnitude > 0.001f)
+                {
+                    desiredRotation = Quaternion.LookRotation(lookDirection, Vector3.up);
+                }
+            }
+            transform.position = Vector3.Lerp(transitstartPos, desiredPosition, t);
+            transform.rotation = Quaternion.Slerp(transitstartRot, desiredRotation, t);
+            if (t >= 1f)
+            {
+                IsTransit = false;
             }
         }
+        else if (Ainput.CameraHold)
+        {
+            FreeLookCamera();
+        }
+        else if (curentCameraMod == CameraMod.Standart)
+        {
+            StandartCameraView();
+        }
+        else
+        {
+            FullCameraView();
+        }
 
-
-       /* Vector3 targetPosition = target.TransformPoint(offset);
-        transform.position = Vector3.Lerp(transform.position, targetPosition, followSpeed * Time.deltaTime);
-        transform.LookAt(target); */
     }
 
     private void ChangeCameraView()
@@ -156,8 +207,7 @@ public class AircraftCamera : MonoBehaviour
         if (target == null) return;
         //Розрахунок позиції
         Vector3 desiredPosition = target.position + target.rotation * offset;
-        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
+        transform.position = desiredPosition;
         //розрахунок повороту
         Vector3 lookPoint = target.position + target.up * lookAtHeight;
         Vector3 lookDirection = lookPoint - transform.position;
@@ -189,8 +239,7 @@ public class AircraftCamera : MonoBehaviour
         }
         Quaternion flatRotation = Quaternion.LookRotation(flatForward, Vector3.up);
         Vector3 desiredPosition = target.position + flatRotation * offset;
-        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
+        transform.position = desiredPosition;
         Vector3 lookPoint = target.position + Vector3.up * lookAtHeight;
         Vector3 lookDirection = lookPoint - transform.position;
         if (lookDirection.sqrMagnitude > 0.001f)
@@ -218,6 +267,7 @@ public class AircraftCamera : MonoBehaviour
     }
     private Quaternion GetFreeLookBasis()
     {
+
         if (curentCameraMod == CameraMod.FullTraking)return target.rotation;
         Vector3 flatForward =Vector3.ProjectOnPlane(target.forward, Vector3.up);
 
@@ -245,6 +295,7 @@ public class AircraftCamera : MonoBehaviour
         if (target == null) return;
         Quaternion basis = GetFreeLookBasis();
         Vector3 lookPoint = GetFreeLookPoint();
+        freeLookBasis = basis;
         Vector3 cameraOffset =Quaternion.Inverse(basis) * (transform.position - lookPoint);
         currentCameraDistance = cameraOffset.magnitude;
         if (currentCameraDistance <= 0.001f) return;
@@ -263,7 +314,7 @@ public class AircraftCamera : MonoBehaviour
         currentPitch -= camLook.y * lookSensitivity;
         currentPitch = Mathf.Clamp(currentPitch, minPitch, maxPitch);
 
-        Quaternion basis = GetFreeLookBasis();
+        Quaternion basis = freeLookBasis;
         Vector3 lookPoint = GetFreeLookPoint();
 
         float yawRad = currentYaw * Mathf.Deg2Rad;
@@ -277,8 +328,7 @@ public class AircraftCamera : MonoBehaviour
 
         Vector3 desiredPosition =lookPoint + basis * (offsetDir * currentCameraDistance);
 
-        float posT = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, posT);
+        transform.position = desiredPosition;
         Vector3 lookDirection = lookPoint - transform.position;
 
         if (lookDirection.sqrMagnitude > 0.001f)
@@ -291,7 +341,10 @@ public class AircraftCamera : MonoBehaviour
 
     private void EndFreeLook()
     {
-
+        transitstartPos = transform.position;
+        transitstartRot = transform.rotation;
+        transitTimer = 0f;
+        IsTransit = true;
     }
 
 

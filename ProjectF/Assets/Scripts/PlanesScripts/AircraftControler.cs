@@ -8,12 +8,13 @@ public class AircraftControler : MonoBehaviour
     private AircraftRotation aircraftrotation;
     private AircraftGroundMovement airgmove;
     private LandingGearController landgear;
-    private AirbrakeController airbrake;
     private AircraftStats airstats;
     public float Pitch;
     public float Roll;
     public float Yaw;
     public float throttle = 0f;
+    public float AirBrake;
+    public float LangGear;
     [SerializeField] private float throttlespeed = 50f;
     GripenRigController rigController;
 
@@ -38,12 +39,6 @@ public class AircraftControler : MonoBehaviour
             throttle = math.clamp(throttle - throttlespeed * Time.deltaTime, 0f, 110f);
         }
 
-        float normalizedThrottle = Mathf.Clamp01(throttle / 100f);
-        float normalizedAfterburner = Mathf.Clamp01((throttle - 100f) / 10f);
-
-        if (rigController != null)
-        {
-            rigController.SetEngineState(normalizedThrottle, normalizedAfterburner);
-        }
+        AirBrake = aircraftInput.Airbrake;
     }
 }
