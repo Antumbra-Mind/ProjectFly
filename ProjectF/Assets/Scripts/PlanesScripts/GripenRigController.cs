@@ -33,6 +33,8 @@ public class GripenRigController : MonoBehaviour
     [Header("Шасі (Animator)")]
     public Animator gripenAnimator;
     public string gearAnimState = "Gear_Retract";
+    [Range(0.1f, 2f)]
+    public float gearAnimSpeed = 0.4f; // 1 = стандарт, 0.4 = у 2.5 раза повільніше
 
     [Header("Загальні налаштування")]
     public float rigSmoothSpeed = 10f;
@@ -98,7 +100,8 @@ public class GripenRigController : MonoBehaviour
         _gearRetracted = !_gearRetracted;
         if (gripenAnimator)
         {
-            gripenAnimator.SetFloat("GearSpeed", _gearRetracted ? 1f : -1f);
+            float dir = _gearRetracted ? 1f : -1f;
+            gripenAnimator.SetFloat("GearSpeed", dir * gearAnimSpeed);
             gripenAnimator.Play(gearAnimState, 0, _gearRetracted ? 0f : 1f);
         }
     }

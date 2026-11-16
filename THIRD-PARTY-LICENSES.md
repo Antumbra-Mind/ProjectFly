@@ -26,3 +26,15 @@ Model License:
 
 If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
 This work is based on "Trees Low Poly" (https://sketchfab.com/3d-models/trees-low-poly-1d2dcca2ccb1496c85b7cc5789a2a261) by Igor_K. (https://sketchfab.com/Igor_K.) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+
+**Searchlight**
+* *title:* Searchlight
+* *source:* https://skfb.ly/6WUst
+* *author:* yretes
+
+Model License:
+* *license type:* CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* *requirements:* Author must be credited. Commercial use is allowed.
+
+Credit:
+"Searchlight" (https://skfb.ly/6WUst) by yretes is licensed under Creative Commons Attribution (http://creativecommons.org/licenses/by/4.0/).

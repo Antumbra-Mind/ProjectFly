@@ -35,7 +35,7 @@ MonoBehaviour:
     m_Value: 1
   threshold:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.9
   intensity:
     m_OverrideState: 1
     m_Value: 0.5
@@ -272,7 +272,7 @@ MonoBehaviour:
     m_Value: 0
   globalSpeed:
     m_OverrideState: 1
-    m_Value: 50
+    m_Value: 1250
   globalOrientation:
     m_OverrideState: 0
     m_Value: 0
@@ -311,7 +311,7 @@ MonoBehaviour:
     m_Value: 0.5
   shadows:
     m_OverrideState: 0
-    m_Value: 1
+    m_Value: 0
   shadowResolution:
     m_OverrideState: 0
     m_Value: 1024
@@ -328,13 +328,13 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 0.95
   perceptualBlending:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 1
   numPrimarySteps:
     m_OverrideState: 1
-    m_Value: 250
+    m_Value: 150
   numLightSteps:
-    m_OverrideState: 1
+    m_OverrideState: 0
     m_Value: 2
   fadeInMode:
     m_OverrideState: 0
