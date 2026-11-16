@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &805573
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 805574}
+  m_Layer: 0
+  m_Name: Lift Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &805574
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805573}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: 0.688, z: -1.88}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4964978764383216296}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1539975
 GameObject:
   m_ObjectHideFlags: 0
@@ -94033,6 +94064,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2eaed4e5821beef48ad3d21927dba6cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AircraftPhisics
+  LiftPoint: {fileID: 805574}
+  IsStalling: 0
 --- !u!1001 &525453147999741750
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -94390,6 +94423,8 @@ MonoBehaviour:
   Roll: 0
   Yaw: 0
   throttle: 0
+  AirBrake: 0
+  LangGear: 0
   throttlespeed: 50
 --- !u!1 &1371147269198380880
 GameObject:
@@ -94525,6 +94560,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbbced72f9f946c43b484e502e8fbfc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LandingGearController
+  FrontGear: {fileID: 0}
+  BackLeftGear: {fileID: 0}
+  BackRightGear: {fileID: 0}
 --- !u!1 &2103983970027402188
 GameObject:
   m_ObjectHideFlags: 0
@@ -95224,6 +95262,7 @@ Transform:
   m_Children:
   - {fileID: 6598658164727022607}
   - {fileID: 8941392272337773394}
+  - {fileID: 805574}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 83.9, z: 0}
 --- !u!1 &5136796053428160681
@@ -96394,13 +96433,105 @@ MonoBehaviour:
   PlaneMaxSpeed: 0
   PlaneEnginePower: 0
   Afterburner: 0
-  AirRessistanse: 0
   AirBrakePower: 0
   GroundBrakePower: 0
-  YawSpeed: 0
-  PitchSpeed: 0
-  RollSpeed: 0
+  _MaxYawAngVel: 0
+  _MaxPitchUpAngVel: 0
+  _MaxPitchDownAngVel: 0
+  _MaxRollAngVel: 0
   LandGearTimeReveal: 0
+  BaseDragCoefficient: 0.02
+  WingArea: 0
+  WingSpan: 0
+  AirDensity: 1.225
+  OswaldEfficiency: 0
+  LiftCoefficientCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: -13.003393
+      value: -0.99882656
+      inSlope: 0.04973643
+      outSlope: 0.04973643
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.50520295
+    - serializedVersion: 3
+      time: -7.0046353
+      value: -0.7040209
+      inSlope: 0.043155786
+      outSlope: 0.043155786
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.4938855
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 4.0256424
+      value: -0.0059840227
+      inSlope: 0.079589665
+      outSlope: 0.079589665
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.13863829
+      outWeight: 0
+    - serializedVersion: 3
+      time: 9.930886
+      value: 0.505675
+      inSlope: 0.0785453
+      outSlope: 0.0785453
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.26616395
+      outWeight: 0
+    - serializedVersion: 3
+      time: 16.116457
+      value: 1.0005202
+      inSlope: 0.096501306
+      outSlope: 0.096501306
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.46779242
+      outWeight: 0
+    - serializedVersion: 3
+      time: 22.01081
+      value: 1.2023524
+      inSlope: -0.0043187276
+      outSlope: -0.0043187276
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.9168671
+      outWeight: 0
+    - serializedVersion: 3
+      time: 26.014002
+      value: 0.8022407
+      inSlope: -0.11532431
+      outSlope: -0.11532431
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.32500184
+      outWeight: 0
+    - serializedVersion: 3
+      time: 34.320656
+      value: 0.30210072
+      inSlope: -0.040455032
+      outSlope: -0.040455032
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33735
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  HigtAOADraft: 0.3
+  ReverseFlowDrag: 1.5
+  KpPitch: 0
+  KpRoll: 0
+  KpYaw: 0
+  KdPitch: 0
+  KdRoll: 0
+  KdYaw: 0
+  BrakePower: 50000
 --- !u!95 &7597150106902980681
 Animator:
   serializedVersion: 7
@@ -96761,6 +96892,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f473ddfad31d4e489e681dfeb29740f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AircraftGroundMovement
+  controller: {fileID: 0}
+  Ainput: {fileID: 0}
+  FrontGear: {fileID: 0}
+  BackLeftGear: {fileID: 0}
+  BackRightGear: {fileID: 0}
+  CurrentState: 0
+  IsTransitioning: 0
 --- !u!4 &8941392272337773394
 Transform:
   m_ObjectHideFlags: 0
