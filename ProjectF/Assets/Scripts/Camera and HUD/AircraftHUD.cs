@@ -29,7 +29,7 @@ public class AircraftHUD : MonoBehaviour
     private void Awake()
     {
         phisics = GuffuAhPlane.GetComponent<AircraftPhisics>();
-        controler = GetComponent<AircraftControler>();
+        controler = GuffuAhPlane.GetComponent<AircraftControler>();
         rigitbody = GuffuAhPlane.GetComponent<Rigidbody>();
         Gmove = GuffuAhPlane.GetComponent<AircraftGroundMovement>();
         if (GuffuAhPlane != null)
@@ -95,8 +95,6 @@ public class AircraftHUD : MonoBehaviour
     public void UpdateStallText()
     {
         Stall.enabled = phisics.IsStalling;
-
-
     }
 
     public void UpdateAirbrakeImage()
