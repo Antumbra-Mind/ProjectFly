@@ -121,7 +121,7 @@ Material:
     - _BumpScale: 1
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
-    - _CloudNearPlane: 1186.1154
+    - _CloudNearPlane: 1183.0747
     - _Cull: 2
     - _Cutoff: 0.5
     - _DensityMultiplier: 0.32000002

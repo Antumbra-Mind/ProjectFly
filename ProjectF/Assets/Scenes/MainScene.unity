@@ -119,6 +119,37 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &805573
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 805574}
+  m_Layer: 0
+  m_Name: Lift Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &805574
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 805573}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: 0.688, z: -1.88}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4964978764383216296}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1539975
 GameObject:
   m_ObjectHideFlags: 0
@@ -94033,7 +94064,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2eaed4e5821beef48ad3d21927dba6cc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AircraftPhisics
-  LiftPoint: {fileID: 4964978764383216296}
+  LiftPoint: {fileID: 805574}
   IsStalling: 0
 --- !u!1001 &525453147999741750
 PrefabInstance:
@@ -95235,6 +95266,7 @@ Transform:
   m_Children:
   - {fileID: 6598658164727022607}
   - {fileID: 8941392272337773394}
+  - {fileID: 805574}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 83.9, z: 0}
 --- !u!1 &5136796053428160681
@@ -96421,31 +96453,76 @@ MonoBehaviour:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
-      weightedMode: 0
-      inWeight: 0
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.18743591
-      value: 0.18743591
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
+      time: -13.003393
+      value: -0.99882656
+      inSlope: 0.04973643
+      outSlope: 0.04973643
+      tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
+      outWeight: 0.50520295
+    - serializedVersion: 3
+      time: -7.0046353
+      value: -0.7040209
+      inSlope: 0.043155786
+      outSlope: 0.043155786
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.4938855
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
+      time: 4.0256424
+      value: -0.0059840227
+      inSlope: 0.079589665
+      outSlope: 0.079589665
+      tangentMode: 0
       weightedMode: 0
-      inWeight: 0.33333334
+      inWeight: 0.13863829
+      outWeight: 0
+    - serializedVersion: 3
+      time: 9.930886
+      value: 0.505675
+      inSlope: 0.0785453
+      outSlope: 0.0785453
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.26616395
+      outWeight: 0
+    - serializedVersion: 3
+      time: 16.116457
+      value: 1.0005202
+      inSlope: 0.096501306
+      outSlope: 0.096501306
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.46779242
+      outWeight: 0
+    - serializedVersion: 3
+      time: 22.01081
+      value: 1.2023524
+      inSlope: -0.0043187276
+      outSlope: -0.0043187276
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.9168671
+      outWeight: 0
+    - serializedVersion: 3
+      time: 26.014002
+      value: 0.8022407
+      inSlope: -0.11532431
+      outSlope: -0.11532431
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.32500184
+      outWeight: 0
+    - serializedVersion: 3
+      time: 34.320656
+      value: 0.30210072
+      inSlope: -0.040455032
+      outSlope: -0.040455032
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33735
       outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
