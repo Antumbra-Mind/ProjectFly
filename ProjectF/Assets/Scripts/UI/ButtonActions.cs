@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Unity.VisualScripting;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class MenuCardActions : MonoBehaviour
@@ -11,5 +12,14 @@ public class MenuCardActions : MonoBehaviour
         // Впиши точну назву твоєї ігрової сцени (вона має бути додана в File -> Build Profiles / Build Settings)
         fpsTarget.SetMainMenuState(false);
         SceneManager.LoadScene("MainScene");
+    }
+    public void ExitGame()
+    {
+        Debug.Log("Клік по ВИХІД");
+        #if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+        #else
+            Application.Quit();
+        #endif
     }
 }
