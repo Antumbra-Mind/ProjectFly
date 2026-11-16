@@ -8,7 +8,6 @@ public class AircraftControler : MonoBehaviour
     private AircraftRotation aircraftrotation;
     private AircraftGroundMovement airgmove;
     private LandingGearController landgear;
-    private AirbrakeController airbrake;
     private AircraftStats airstats;
     public float Pitch;
     public float Roll;

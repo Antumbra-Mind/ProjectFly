@@ -9,7 +9,6 @@ public class AircraftHUD : MonoBehaviour
     public AircraftControler controler;
     public Rigidbody rigitbody;
     public AircraftInput input;
-    public AirbrakeController controller;
     public AircraftPhisics phisics;
     public AircraftGroundMovement Gmove;
     public Transform GuffuAhPlane;
@@ -30,7 +29,7 @@ public class AircraftHUD : MonoBehaviour
     private void Awake()
     {
         phisics = GuffuAhPlane.GetComponent<AircraftPhisics>();
-        controller = GetComponent<AirbrakeController>();
+        controler = GetComponent<AircraftControler>();
         rigitbody = GuffuAhPlane.GetComponent<Rigidbody>();
         Gmove = GuffuAhPlane.GetComponent<AircraftGroundMovement>();
         if (GuffuAhPlane != null)

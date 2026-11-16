@@ -7,8 +7,10 @@ public class AircraftPhisics : MonoBehaviour
     private Rigidbody rigidbody;
     private AircraftControler controler;
     private AircraftStats stats;
+    private AircraftGroundMovement groundMove;
     private float debugTimer;
     public Transform LiftPoint;
+   
     private float AR;
     public bool IsStalling = false;
     private void Start()
@@ -19,6 +21,7 @@ public class AircraftPhisics : MonoBehaviour
 
     private void Awake()
     {
+        groundMove = GetComponent<AircraftGroundMovement>();
         rigidbody = GetComponent<Rigidbody>();
         controler = GetComponent<AircraftControler>();
         stats = GetComponent<AircraftStats>();
@@ -104,6 +107,7 @@ public class AircraftPhisics : MonoBehaviour
                 Vector3 LiftForce = liftDirection * liftForceMag;
                 rigidbody.AddForceAtPosition(LiftForce, LiftPoint.position);
             }
+            if (!groundMove.IsGrounded) { 
             if (AOA > 18f || AOA < -18f)
             {
                 IsStalling = true;
@@ -113,7 +117,11 @@ public class AircraftPhisics : MonoBehaviour
                 IsStalling = false;
             }
 
-
+            }
+            else
+            {
+                IsStalling = false;
+            }
         }
 
     }

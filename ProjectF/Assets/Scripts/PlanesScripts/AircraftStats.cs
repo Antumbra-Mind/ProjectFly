@@ -36,6 +36,7 @@ public class AircraftStats : MonoBehaviour
     public float KdPitch;
     public float KdRoll;
     public float KdYaw;
+    public float BrakePower = 50000f;
 
 
     private void Awake()

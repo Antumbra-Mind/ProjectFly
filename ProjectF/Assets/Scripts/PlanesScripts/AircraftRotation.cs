@@ -9,6 +9,7 @@ public class AircraftRotation : MonoBehaviour
     private AircraftStats stats;
     private AircraftControler controler;
     private AircraftPhisics phisics;
+    private AircraftGroundMovement groundMove;
     private float targetPitch;
     private float targetRoll;
     private float targetYaw;
@@ -19,8 +20,10 @@ public class AircraftRotation : MonoBehaviour
     private float controlEffectiv = 1f;
     private float stallEffect = 0.6f;
 
+
     private void Awake()
     {
+        groundMove = GetComponent<AircraftGroundMovement>();
         phisics = GetComponent<AircraftPhisics>();
         rigitbody = GetComponent<Rigidbody>();
         stats = GetComponent<AircraftStats>();
@@ -33,6 +36,7 @@ public class AircraftRotation : MonoBehaviour
 
         Pitch = controler.Pitch;
 
+
         if (Pitch > 0f)
         {
             targetPitch = stats._MaxPitchUpAngVel * Pitch;
@@ -44,6 +48,14 @@ public class AircraftRotation : MonoBehaviour
 
         targetRoll = stats._MaxRollAngVel * controler.Roll;
         targetYaw = stats._MaxYawAngVel * controler.Yaw;
+
+
+        if (groundMove.IsGrounded)
+        {
+            targetRoll = 0f;
+            targetYaw = 0f;
+            targetPitch *= 0.5f;
+        }
 
         targetPitch *= Mathf.Deg2Rad;
         targetRoll *= Mathf.Deg2Rad;
@@ -75,6 +87,7 @@ public class AircraftRotation : MonoBehaviour
         float currentYaw = _LocalAngVel.y;
         float currentRoll = _LocalAngVel.z;
         _ErrorDiferrence = _AllTarget - _LocalAngVel;
+        //Шассі
 
         // PD-контролери
         float pitchAcceleration = CalculatePD(targetPitch, currentPitch,controlEffectiv, stats.KpPitch, stats.KdPitch);
@@ -99,6 +112,8 @@ public class AircraftRotation : MonoBehaviour
 
         // Застосування крутного моменту
         rigitbody.AddTorque(UniversaryTorque, ForceMode.Force);
+
+
     }
 
     float CalculatePD(float target, float current,float controlEffectiv, float Kp, float Kd)

@@ -17,6 +17,8 @@ public class AircraftGroundMovement : MonoBehaviour
         Taxi,
         Flying
     }
+    public bool IsGrounded { get; private set; }
+
 
     private void Awake()
     {
@@ -33,6 +35,38 @@ public class AircraftGroundMovement : MonoBehaviour
         }
         PreviousGearInput = Ainput.Landgear;
     }
+    private IEnumerator Start()
+    {
+        CurrentState = AircraftState.Flying;
+
+        FrontGear.enabled = false;
+        BackLeftGear.enabled = false;
+        BackRightGear.enabled = false;
+
+        yield return new WaitForFixedUpdate();
+
+        CurrentState = AircraftState.Taxi;
+
+        FrontGear.enabled = true;
+        BackLeftGear.enabled = true;
+        BackRightGear.enabled = true;
+    }
+    private void FixedUpdate()
+    {
+
+        WheelHit Hit;
+
+        bool FrontInGround = FrontGear.GetGroundHit(out Hit);
+        bool BackLInGround = BackRightGear.GetGroundHit(out Hit);
+        bool BackRInGround = BackLeftGear.GetGroundHit(out Hit);
+
+        IsGrounded = FrontInGround || BackRInGround || BackLInGround;
+        /*if (CurrentState == AircraftState.Taxi && !IsTransitioning)
+        {
+            FrontGear.steerAngle = Ainput.Taxi * 30f;
+            Debug.Log(Ainput.Taxi);
+        }*/ //Перенести в LandGearControl
+    }
 
     private IEnumerator ChangeAircraftState()
     {
@@ -46,5 +80,6 @@ public class AircraftGroundMovement : MonoBehaviour
         BackRightGear.enabled = GearEnable; 
             
         IsTransitioning = false;
+
     }
 }
