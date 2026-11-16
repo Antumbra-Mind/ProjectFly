@@ -9,6 +9,7 @@ public class AircraftPhisics : MonoBehaviour
 
     private void Awake()
     {
+        GetComponent<Rigidbody>().centerOfMass = new Vector3(0f, -0.2f, -0.5f);
         rigidbody = GetComponent<Rigidbody>();
         controler = GetComponent<AircraftControler>();
         stats = GetComponent<AircraftStats>();

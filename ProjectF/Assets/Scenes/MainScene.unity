@@ -41171,11 +41171,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6727030346718779407, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_Size.y
-      value: 4.80363
+      value: 3.5986876
       objectReference: {fileID: 0}
     - target: {fileID: 6727030346718779407, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_Size.z
       value: 15.274975
+      objectReference: {fileID: 0}
+    - target: {fileID: 6727030346718779407, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
+      propertyPath: m_Enabled
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6727030346718779407, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_Center.x
@@ -41183,7 +41187,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6727030346718779407, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_Center.y
-      value: 0.45992517
+      value: 1.0623963
       objectReference: {fileID: 0}
     - target: {fileID: 6727030346718779407, guid: c75d89491ab52df4c9fa99fdccc05ee8, type: 3}
       propertyPath: m_Center.z
@@ -74563,6 +74567,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8262369787523834270, guid: 1cf5176c761768d4895e5be1dad0f58c, type: 3}
   m_PrefabInstance: {fileID: 1626476339}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1626919498 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6372005410343434383, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
+  m_PrefabInstance: {fileID: 1645220324}
+  m_PrefabAsset: {fileID: 0}
+--- !u!146 &1626919502
+WheelCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1626919498}
+  serializedVersion: 2
+  m_Center: {x: 0, y: 0, z: 0}
+  m_Radius: 0.01
+  m_SuspensionSpring:
+    spring: 35000
+    damper: 4500
+    targetPosition: 0.5
+  m_SuspensionDistance: 0.3
+  m_ForceAppPointDistance: 0
+  m_Mass: 20
+  m_WheelDampingRate: 0.25
+  m_ForwardFriction:
+    m_ExtremumSlip: 0.4
+    m_ExtremumValue: 1
+    m_AsymptoteSlip: 0.8
+    m_AsymptoteValue: 0.5
+    m_Stiffness: 1
+  m_SidewaysFriction:
+    m_ExtremumSlip: 0.2
+    m_ExtremumValue: 1
+    m_AsymptoteSlip: 0.5
+    m_AsymptoteValue: 0.75
+    m_Stiffness: 1
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_Enabled: 1
+  m_ProvidesContacts: 0
 --- !u!1001 &1627879296
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -75541,6 +75589,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2116264182}
+    - targetCorrespondingSourceObject: {fileID: 6372005410343434383, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1626919502}
   m_SourcePrefab: {fileID: 100100000, guid: d1ad9a8041fb3ee4299c9da3cdf91b6b, type: 3}
 --- !u!95 &1645220325 stripped
 Animator:
@@ -92767,6 +92818,7 @@ MonoBehaviour:
   leftCanard: {fileID: 1150005857}
   rightCanard: {fileID: 1210603420}
   maxCanardAngle: 25
+  canardRotationAxis: 1
   leftElevon: {fileID: 2011690260}
   rightElevon: {fileID: 540657168}
   maxElevonAngle: 22

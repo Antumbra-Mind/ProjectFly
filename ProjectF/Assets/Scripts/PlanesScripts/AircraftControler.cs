@@ -15,10 +15,12 @@ public class AircraftControler : MonoBehaviour
     public float Yaw;
     public float throttle = 0f;
     [SerializeField] private float throttlespeed = 50f;
+    GripenRigController rigController;
 
     private void Awake()
     {
         aircraftInput = GetComponent<AircraftInput>();
+        rigController = GetComponent<GripenRigController>();
     }
 
     private void Update()
@@ -36,5 +38,12 @@ public class AircraftControler : MonoBehaviour
             throttle = math.clamp(throttle - throttlespeed * Time.deltaTime, 0f, 110f);
         }
 
+        float normalizedThrottle = Mathf.Clamp01(throttle / 100f);
+        float normalizedAfterburner = Mathf.Clamp01((throttle - 100f) / 10f);
+
+        if (rigController != null)
+        {
+            rigController.SetEngineState(normalizedThrottle, normalizedAfterburner);
+        }
     }
 }
