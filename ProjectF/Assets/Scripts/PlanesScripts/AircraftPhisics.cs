@@ -22,6 +22,7 @@ public class AircraftPhisics : MonoBehaviour
 
     private void Awake()
     {
+        groundMove = GetComponent<AircraftGroundMovement>();
         GetComponent<Rigidbody>().centerOfMass = new Vector3(0f, -0.2f, -0.5f);
         rigidbody = GetComponent<Rigidbody>();
         controler = GetComponent<AircraftControler>();
@@ -109,20 +110,18 @@ public class AircraftPhisics : MonoBehaviour
                 rigidbody.AddForceAtPosition(LiftForce, LiftPoint.position);
             }
 
-            if (!groundMove.IsGrounded) { }
-
-            if (AOA > 18f || AOA < -18f)
-            {
-                IsStalling = true;
-            }
-            else if (AOA < 13f && AOA > -13f)
+            if (groundMove.IsGrounded || speed < 5f)
             {
                 IsStalling = false;
             }
             else
             {
-                IsStalling = false;
+                if (AOA > 18f || AOA < -18f)
+                    IsStalling = true;
+                else if (AOA < 13f && AOA > -13f)
+                    IsStalling = false;
             }
+
         }
     }
 }

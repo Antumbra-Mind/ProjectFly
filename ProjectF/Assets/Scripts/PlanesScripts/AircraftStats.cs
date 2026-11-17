@@ -53,10 +53,10 @@ public class AircraftStats : MonoBehaviour
                 OswaldEfficiency = 0.75f;
                 AirBrakePower = 0.3f; //Сила повітряного тормозу
                 GroundBrakePower = 10f; //Сила Наземного тормощу        
-                _MaxYawAngVel = 30f;
-                _MaxPitchUpAngVel = 40f;
-                _MaxPitchDownAngVel = 20f;
-                _MaxRollAngVel = 50f;
+                _MaxYawAngVel = 50f;
+                _MaxPitchUpAngVel = 90f;
+                _MaxPitchDownAngVel = 45f;
+                _MaxRollAngVel = 75f;
                 KpPitch = 8f;
                 KpRoll = 10f;
                 KpYaw = 5f;

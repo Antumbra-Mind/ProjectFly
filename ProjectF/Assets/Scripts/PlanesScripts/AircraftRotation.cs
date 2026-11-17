@@ -54,7 +54,9 @@ public class AircraftRotation : MonoBehaviour
         {
             targetRoll = 0f;
             targetYaw = 0f;
-            targetPitch *= 0.8f;
+            targetPitch *= 0.2f;
+            if (targetPitch > 0f)
+                targetPitch = 0f;
         }
 
         targetPitch *= Mathf.Deg2Rad;

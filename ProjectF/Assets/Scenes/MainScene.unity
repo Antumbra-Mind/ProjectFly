@@ -55264,7 +55264,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d0d71238b38a4a38b35b955fbf5c019, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::nTools.PrefabPainter.PrefabPainterSceneSettings
-  parentForPrefabs: {fileID: 0}
 --- !u!4 &1047016843
 Transform:
   m_ObjectHideFlags: 19
@@ -80818,9 +80817,21 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
+      propertyPath: Gmove
+      value: 
+      objectReference: {fileID: 8899064621218387937}
+    - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
+      propertyPath: input
+      value: 
+      objectReference: {fileID: 578455241447019647}
+    - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
       propertyPath: slide
       value: 
       objectReference: {fileID: 596427578}
+    - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
+      propertyPath: phisics
+      value: 
+      objectReference: {fileID: 510810030647532020}
     - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
       propertyPath: Altitude
       value: 
@@ -80833,6 +80844,10 @@ PrefabInstance:
       propertyPath: controler
       value: 
       objectReference: {fileID: 1364738463152986608}
+    - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
+      propertyPath: rigitbody
+      value: 
+      objectReference: {fileID: 6166248075592976486}
     - target: {fileID: 1344430253074757364, guid: d5d0860c119856548bd6f9f3e58942c0, type: 3}
       propertyPath: FillSlider
       value: 
@@ -97940,7 +97955,7 @@ Transform:
   m_GameObject: {fileID: 1371147269198380880}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.000039577484, y: -1.12, z: 2.9679809}
+  m_LocalPosition: {x: 0.008, y: -0.796, z: 3.027}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -98161,7 +98176,7 @@ Transform:
   m_GameObject: {fileID: 6436223196526354111}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.1265022, y: -0.9, z: -2.2353911}
+  m_LocalPosition: {x: 1.1265022, y: -0.711, z: -2.2353911}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -98417,7 +98432,7 @@ Transform:
   m_GameObject: {fileID: 9058234177733251061}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.1264722, y: -0.9, z: -2.2352374}
+  m_LocalPosition: {x: -1.1264722, y: -0.685, z: -2.2352374}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
