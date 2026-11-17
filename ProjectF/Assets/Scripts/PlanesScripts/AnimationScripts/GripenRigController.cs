@@ -81,6 +81,27 @@ public class GripenRigController : MonoBehaviour
     public float closedNozzleScale = 0.85f;
     public float openNozzleScale = 1.15f;
     public bool invertNozzle = false;
+    [Header("Ефект форсажу (VFX)")]
+    public Transform afterburnerFlameRoot;
+    public Light nozzlePointLight;
+    public Renderer[] flameRenderers;
+    public ParticleSystem afterburnerParticles; // Перетягни сюди Afterburner_Particles
+    public float maxParticleRate = 140f;
+    public float minFlameLength = 0.2f;
+    public float maxFlameLength = 1.6f;
+    public float maxLightIntensity = 8f;
+    [Header("Ефект розрідженого повітря (Heat Distortion)")]
+    public Transform heatDistortionRoot;
+    public Renderer heatDistortionRenderer;
+    public float minHeatLength = 0.7f;
+    public float maxHeatLength = 2.8f;
+    public float maxDistortionStrength = 0.065f; // Підняли з 0.03 до 0.065 для чіткого марева
+
+    private MaterialPropertyBlock _heatPropBlock;
+    private static readonly int DistortionID = Shader.PropertyToID("_DistortionStrength");
+
+    private MaterialPropertyBlock _flamePropBlock;
+    private static readonly int IntensityID = Shader.PropertyToID("_FlameIntensity");
 
     [Header("Стійки шасі (Передня, Ліва, Права)")]
     public GearStrut[] struts = new GearStrut[3];
@@ -262,6 +283,73 @@ public class GripenRigController : MonoBehaviour
                 if (nozzlePetals[i])
                     nozzlePetals[i].localScale = GetNozzleScale(_petalBaseScales[i], scaleMult, nozzleLengthAxis);
             }
+        }
+        FlameUpdated();
+    }
+
+    private void FlameUpdated()
+    {
+        // 1. Вогонь: 
+        // - На звичайній тязі від 75% до 100% з'являється коротке ядро (до 0.25 потужності)
+        // - На форсажі (_extAfterburner > 0) одразу стрибає з 0.35 до 1.0 (навіть 10% AFB виглядають виразно)
+        float milFlame = Mathf.Clamp01((_extThrottle - 0.75f) / 0.25f) * 0.25f;
+        float abFlame = _extAfterburner > 0.001f
+            ? Mathf.Lerp(0.35f, 1.0f, Mathf.Pow(_extAfterburner, 0.65f))
+            : 0f;
+
+        float flamePower = Mathf.Max(milFlame, abFlame);
+
+        if (afterburnerFlameRoot != null)
+        {
+            afterburnerFlameRoot.gameObject.SetActive(flamePower > 0.01f);
+
+            float radialScale = Mathf.Lerp(closedNozzleScale, openNozzleScale, _curNozzleOpen);
+            float lengthScale = Mathf.Lerp(minFlameLength, maxFlameLength, flamePower);
+            afterburnerFlameRoot.localScale = new Vector3(radialScale, lengthScale, radialScale);
+        }
+
+        // Оновлюємо інтенсивність шейдера полум'я та іскор
+        if (flameRenderers != null && flameRenderers.Length > 0)
+        {
+            _flamePropBlock ??= new MaterialPropertyBlock();
+            for (int i = 0; i < flameRenderers.Length; i++)
+            {
+                if (flameRenderers[i] == null) continue;
+                flameRenderers[i].GetPropertyBlock(_flamePropBlock);
+                _flamePropBlock.SetFloat(IntensityID, flamePower * 1.8f);
+                flameRenderers[i].SetPropertyBlock(_flamePropBlock);
+            }
+        }
+
+        if (afterburnerParticles != null)
+        {
+            var emission = afterburnerParticles.emission;
+            // Іскри летять переважно на форсажі, але трохи з'являються і на 90%+ тяги
+            float particleFactor = _extAfterburner > 0.001f
+                ? Mathf.Lerp(0.3f, 1.0f, _extAfterburner)
+                : Mathf.Clamp01((_extThrottle - 0.9f) * 10f) * 0.15f;
+            emission.rateOverTime = particleFactor * maxParticleRate;
+        }
+
+        // 2. Розріджене повітря (сильніше та раніше: від 20% тяги)
+        float baseHeat = Mathf.Clamp01((_extThrottle - 0.2f) / 0.8f);
+        float heatPower = Mathf.Clamp01(Mathf.Pow(baseHeat, 0.7f) * 0.7f + (_extAfterburner * 0.3f));
+
+        if (heatDistortionRoot != null)
+        {
+            heatDistortionRoot.gameObject.SetActive(heatPower > 0.01f);
+
+            float heatRadial = Mathf.Lerp(closedNozzleScale, openNozzleScale, _curNozzleOpen) * 1.45f;
+            float heatLength = Mathf.Lerp(minHeatLength, maxHeatLength, heatPower);
+            heatDistortionRoot.localScale = new Vector3(heatRadial, heatLength, heatRadial);
+        }
+
+        if (heatDistortionRenderer != null && heatPower > 0.01f)
+        {
+            _heatPropBlock ??= new MaterialPropertyBlock();
+            heatDistortionRenderer.GetPropertyBlock(_heatPropBlock);
+            _heatPropBlock.SetFloat(DistortionID, heatPower * maxDistortionStrength);
+            heatDistortionRenderer.SetPropertyBlock(_heatPropBlock);
         }
     }
 

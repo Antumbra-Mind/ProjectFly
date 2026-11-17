@@ -54,7 +54,7 @@ public class GripenWheelSync : MonoBehaviour
             // 1. Отримуємо реальну позицію колеса з фізики WheelCollider
             strut.collider.GetWorldPose(out Vector3 wheelWorldPos, out _);
 
-            // 2. АМОРТИЗАТОР
+            // 2. АМОРТИЗАТОР: зміщуємо кістку на повну величину реального стиснення пружини
             if (strut.strutAmoBone != null)
             {
                 Vector3 offsetFromColliderOrigin = wheelWorldPos - strut.collider.transform.position;
@@ -66,10 +66,8 @@ public class GripenWheelSync : MonoBehaviour
                     strut.collider.suspensionDistance
                 );
 
-                float targetCompression = strut.collider.suspensionDistance * strut.collider.suspensionSpring.targetPosition;
-                float deltaCompression = compression - targetCompression;
-
-                Vector3 worldDelta = transform.up * deltaCompression;
+                // Якщо в Blender стійка змодельована в розтиснутому стані — використовуємо чистий compression
+                Vector3 worldDelta = transform.up * compression;
                 if (strut.strutAmoBone.parent != null)
                 {
                     Vector3 localDelta = strut.strutAmoBone.parent.InverseTransformVector(worldDelta);
