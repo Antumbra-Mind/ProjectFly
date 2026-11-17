@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem.XR.Haptics;
 
 public class AircraftGroundMovement : MonoBehaviour
 {
@@ -9,16 +8,18 @@ public class AircraftGroundMovement : MonoBehaviour
     public WheelCollider FrontGear;
     public WheelCollider BackLeftGear;
     public WheelCollider BackRightGear;
+
     private bool PreviousGearInput = false;
     public AircraftState CurrentState = AircraftState.Taxi;
     public bool IsTransitioning;
+
     public enum AircraftState
     {
         Taxi,
         Flying
     }
-    public bool IsGrounded { get; private set; }
 
+    public bool IsGrounded { get; private set; }
 
     private void Awake()
     {
@@ -29,43 +30,28 @@ public class AircraftGroundMovement : MonoBehaviour
     private void Update()
     {
         bool GearNow = Ainput.Landgear;
-        if(GearNow && !PreviousGearInput && !IsTransitioning)
+        if (GearNow && !PreviousGearInput && !IsTransitioning)
         {
             StartCoroutine(ChangeAircraftState());
         }
         PreviousGearInput = Ainput.Landgear;
     }
+
     private IEnumerator Start()
     {
         CurrentState = AircraftState.Flying;
-
-        FrontGear.enabled = false;
-        BackLeftGear.enabled = false;
-        BackRightGear.enabled = false;
-
         yield return new WaitForFixedUpdate();
-
         CurrentState = AircraftState.Taxi;
-
-        FrontGear.enabled = true;
-        BackLeftGear.enabled = true;
-        BackRightGear.enabled = true;
     }
+
     private void FixedUpdate()
     {
+        // Перевіряємо контакт лише якщо колайдер активний
+        bool frontInGround = FrontGear != null && FrontGear.enabled && FrontGear.GetGroundHit(out _);
+        bool backLInGround = BackLeftGear != null && BackLeftGear.enabled && BackLeftGear.GetGroundHit(out _);
+        bool backRInGround = BackRightGear != null && BackRightGear.enabled && BackRightGear.GetGroundHit(out _);
 
-        WheelHit Hit;
-
-        bool FrontInGround = FrontGear.GetGroundHit(out Hit);
-        bool BackLInGround = BackRightGear.GetGroundHit(out Hit);
-        bool BackRInGround = BackLeftGear.GetGroundHit(out Hit);
-
-        IsGrounded = FrontInGround || BackRInGround || BackLInGround;
-        /*if (CurrentState == AircraftState.Taxi && !IsTransitioning)
-        {
-            FrontGear.steerAngle = Ainput.Taxi * 30f;
-            Debug.Log(Ainput.Taxi);
-        }*/ //Перенести в LandGearControl
+        IsGrounded = frontInGround || backLInGround || backRInGround;
     }
 
     private IEnumerator ChangeAircraftState()
@@ -73,13 +59,6 @@ public class AircraftGroundMovement : MonoBehaviour
         IsTransitioning = true;
         yield return new WaitForSeconds(5f);
         CurrentState = CurrentState == AircraftState.Flying ? AircraftState.Taxi : AircraftState.Flying;
-        bool GearEnable = CurrentState == AircraftState.Taxi;
-
-        FrontGear.enabled = GearEnable;
-        BackLeftGear.enabled = GearEnable;
-        BackRightGear.enabled = GearEnable; 
-            
         IsTransitioning = false;
-
     }
 }
