@@ -27,8 +27,8 @@ public class AircraftInput : MonoBehaviour
     public float Pitch => pitch;
     public float Roll => roll;
     public float Yaw => yaw;
-    public float Throttle => throttle; 
-    public float Airbrake => airbrake;
+    public float Throttle => throttle;
+    public float Airbrake => (inputAction != null && inputAction.Flight.Airbrake.IsPressed()) ? 1f : 0f;
     public bool Landgear => landgear;
     public float Taxi => taxi;
     public bool Brake => brake;
@@ -58,8 +58,8 @@ public class AircraftInput : MonoBehaviour
         inputAction.Flight.Throttle.performed += OnThrottle;
         inputAction.Flight.Throttle.canceled += OnThrottle;
 
-        inputAction.Flight.Airbrake.performed += OnAirBrake;
-        inputAction.Flight.Airbrake.canceled += OnAirBrake;
+        //inputAction.Flight.Airbrake.performed += OnAirBrake;
+        //inputAction.Flight.Airbrake.canceled += OnAirBrake;
 
         inputAction.Flight.LandingGear.performed += OnLandGear;
         inputAction.Flight.LandingGear.canceled += OnLandGear;
@@ -107,11 +107,17 @@ public class AircraftInput : MonoBehaviour
         throttle = context.ReadValue<float>();
     }
 
-    private void OnAirBrake(InputAction.CallbackContext context)
-    {
-        Debug.Log("Airbrake On!");
-        airbrake = context.ReadValue<float>();
-    }
+    //private void OnAirBrake(InputAction.CallbackContext context)
+    //{
+    //    if (context.performed)
+    //    {
+    //        airbrake = 1f;
+    //    }
+    //    else if (context.canceled)
+    //    {
+    //        airbrake = 0f;
+    //    }
+    //}
 
     private void OnLandGear(InputAction.CallbackContext context)
     {

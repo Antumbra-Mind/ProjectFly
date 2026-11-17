@@ -16,6 +16,11 @@ public class AircraftControler : MonoBehaviour
     public float AirBrake;
     public float LangGear;
     [SerializeField] private float throttlespeed = 50f;
+    [Header("Airbrake Settings")]
+    [Tooltip("false = тримати кнопку для відкриття, true = перемикач вкл/викл по натисканню")]
+    public bool toggleAirbrake = false;
+    private bool _airbrakeToggled = false;
+    private bool _prevAirbrakeInput = false;
     GripenRigController rigController;
 
     private void Awake()
@@ -46,6 +51,21 @@ public class AircraftControler : MonoBehaviour
             rigController.SetEngineState(normalizedThrottle, normalizedAfterburner);
         }
 
-        AirBrake = aircraftInput.Airbrake;
+        bool rawPressed = aircraftInput.Airbrake > 0.5f;
+
+        if (toggleAirbrake)
+        {
+            if (rawPressed && !_prevAirbrakeInput)
+            {
+                _airbrakeToggled = !_airbrakeToggled;
+            }
+        }
+        else
+        {
+            _airbrakeToggled = rawPressed;
+        }
+
+        _prevAirbrakeInput = rawPressed;
+        AirBrake = _airbrakeToggled ? 1f : 0f;
     }
 }

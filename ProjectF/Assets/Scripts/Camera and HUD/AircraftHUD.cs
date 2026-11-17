@@ -77,7 +77,6 @@ public class AircraftHUD : MonoBehaviour
         float afb = math.clamp(thottle - 100f, 0f, 10f);
         DryForce.text = $"THR:{dry:F0}%";
         Afterburner.text = $"AFB:{afb * 10:F0}%";
-
     }
 
     public void UpdateAltitudeText()
@@ -99,15 +98,10 @@ public class AircraftHUD : MonoBehaviour
 
     public void UpdateAirbrakeImage()
     {
-        float Airbrake = input.Airbrake;
-        if (Airbrake == 0)
-        {
-            AirbrakeImage.color = Color.red;
-        }
-        else if (Airbrake == 1)
-        {
-            AirbrakeImage.color = Color.green;
-        }
+        if (controler == null || AirbrakeImage == null) return;
+
+        bool isActive = controler.AirBrake > 0.5f;
+        AirbrakeImage.color = isActive ? Color.green : Color.red;
     }
 
     public void UpdateBrakeImage()
@@ -149,6 +143,4 @@ public class AircraftHUD : MonoBehaviour
         HUDcontent.SetActive(!HUDnow);
         previousHideHUD = HUDnow;
     }
-    
-
 }

@@ -72,6 +72,8 @@ public class GripenRigController : MonoBehaviour
     public bool invertLeftAirbrake = false;
     public bool invertRightAirbrake = true;
 
+    private bool _airbrakeToggledOn = false;
+    private bool _prevAirbrakePressed = false;
     [Header("Сопло (пелюстки + форсаж)")]
     public Transform[] nozzlePetals = { };
     public Transform innerPetals;
@@ -131,6 +133,8 @@ public class GripenRigController : MonoBehaviour
 
     private float _extThrottle;
     private float _extAfterburner;
+    [HideInInspector]
+    private AircraftControler controler;
 
     private Quaternion _lCanardBase, _rCanardBase;
     private Quaternion _inLElevonBase, _inRElevonBase, _outLElevonBase, _outRElevonBase;
@@ -175,6 +179,8 @@ public class GripenRigController : MonoBehaviour
             _airbrakeAct = flightMap.FindAction("Airbrake");
             _gearAct = flightMap.FindAction("LandingGear");
         }
+
+        controler = GetComponent<AircraftControler>();
     }
 
     private void OnEnable()
@@ -182,17 +188,14 @@ public class GripenRigController : MonoBehaviour
         if (!inputActions) return;
         inputActions.FindActionMap("Flight")?.Enable();
 
-        if (_airbrakeAct != null) _airbrakeAct.performed += OnAirbrakeToggle;
         if (_gearAct != null) _gearAct.performed += OnLandingGearToggle;
     }
 
     private void OnDisable()
     {
-        if (_airbrakeAct != null) _airbrakeAct.performed -= OnAirbrakeToggle;
         if (_gearAct != null) _gearAct.performed -= OnLandingGearToggle;
     }
 
-    private void OnAirbrakeToggle(InputAction.CallbackContext ctx) => _airbrakeOpen = !_airbrakeOpen;
 
     private void OnLandingGearToggle(InputAction.CallbackContext ctx)
     {
@@ -265,6 +268,9 @@ public class GripenRigController : MonoBehaviour
         }
 
         // 5. Airbrakes (повітряні гальма)
+        float targetAirbrake = controler != null ? controler.AirBrake : 0f;
+        _curAirbrake = Mathf.Lerp(_curAirbrake, targetAirbrake, dt);
+
         float brakeAngle = _curAirbrake * maxAirbrakeAngle;
         if (leftAirbrake) leftAirbrake.localRotation = _lBrakeBase * GetRigRotation(brakeAngle, airbrakeAxis, invertLeftAirbrake);
         if (rightAirbrake) rightAirbrake.localRotation = _rBrakeBase * GetRigRotation(brakeAngle, airbrakeAxis, invertRightAirbrake);

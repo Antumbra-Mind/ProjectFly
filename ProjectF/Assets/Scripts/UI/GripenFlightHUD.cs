@@ -51,8 +51,8 @@ public class GripenFlightHUD : MonoBehaviour
     [SerializeField] private Color inactiveTextColor = new Color(0.6f, 0.88f, 0.92f, 0.55f);
 
     private bool previousHideHUD;
-    private bool isAirbrakeDeployed;
-    private bool wasAirbrakeInputPressed;
+    //private bool isAirbrakeDeployed;
+    //private bool wasAirbrakeInputPressed;
 
     private void Awake()
     {
@@ -159,17 +159,11 @@ public class GripenFlightHUD : MonoBehaviour
             }
         }
 
-        // 2. Повітряне гальмо (AIR BRAKE) — зберігає стан перемикання
-        if (input != null && airbrakeBg != null)
+        // 2. Повітряне гальмо (AIR BRAKE) — бере стан з AircraftControler
+        if (controler != null && airbrakeBg != null)
         {
-            bool isPressedNow = input.Airbrake > 0.5f;
-            if (isPressedNow && !wasAirbrakeInputPressed)
-            {
-                isAirbrakeDeployed = !isAirbrakeDeployed;
-            }
-            wasAirbrakeInputPressed = isPressedNow;
-
-            SetIndicatorVisual(airbrakeBg, airbrakeLabel, isAirbrakeDeployed, activeAmberColor);
+            bool isAirbrakeActive = controler.AirBrake > 0.5f;
+            SetIndicatorVisual(airbrakeBg, airbrakeLabel, isAirbrakeActive, activeAmberColor);
         }
 
         // 3. Колісне гальмо (BRAKE)

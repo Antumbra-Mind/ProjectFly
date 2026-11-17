@@ -6,7 +6,8 @@ public class LandingGearController : MonoBehaviour
     private AircraftInput Ainput;
     private AircraftGroundMovement groundmove;
     private AircraftStats stats;
-    private Rigidbody rb;
+    [HideInInspector]
+    public Rigidbody rb;
 
     public WheelCollider FrontGear;
     public WheelCollider BackLeftGear;
