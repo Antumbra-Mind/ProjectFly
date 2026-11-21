@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 4df2e7eda63f9664692cfe2cd31d0865
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 290269
+  packageName: Billboard Generator Free
+  packageVersion: 1.1
+  assetPath: Assets/Addons/Billboard_Capture/Shaders/Built_in RP/Imposter_NormalMap.shader
+  uploadId: 682108
